@@ -33,6 +33,7 @@
   </body>
 
   <script type="text/javascript" src="js/lib/face-api.js"></script>
+  <script type="text/javascript" src="js/lib/facefunctions.js"></script>
   <script type="text/javascript">
     var canvas = document.getElementById("main");
     var context = canvas.getContext("2d");
@@ -69,18 +70,9 @@
       video.srcObject = stream;
       await video.play();
 
-      // load face detection and face landmark models
-      if (!isFaceDetectionModelLoaded()) {
-        await faceapi.nets.tinyFaceDetector.load("js/lib/weights/")
-      }
-
-      await faceapi.loadFaceLandmarkModel("js/lib/weights/")
+      await initFaceDetection();
 
       draw();
-    }
-
-    function isFaceDetectionModelLoaded() {
-      return !!faceapi.nets.tinyFaceDetector.params
     }
 
     var players = [];
@@ -97,11 +89,7 @@
       if (video.paused || video.ended || !isFaceDetectionModelLoaded())
         return setTimeout(updateLandmarks);
 
-      // const options = getFaceDetectorOptions()
-      const options = new faceapi.TinyFaceDetectorOptions({
-        inputSize: 512,
-        scoreThreshold: .5
-      });
+      const options = getFaceDetectorOptions();
       const results = await faceapi.detectAllFaces(video, options).withFaceLandmarks()
 
       if (results.length > 0) {
@@ -172,74 +160,11 @@
       }
     }
 
-    function centerOfPoints(points) {
-      var center = { x:0, y:0 };
-
-      for (point of points) {
-        center.x += point.x;
-        center.y += point.y;
-      }
-
-      center.x /= points.length;
-      center.y /= points.length;
-
-      return center;
-    }
-
-    function scalePoints(points, scaleX, scaleY) {
-      scaleY = scaleY || scaleX;
-
-      var center = centerOfPoints(points);
-
-      var newPoints = [];
-
-      for (let point of points) {
-        newPoints.push({
-          x: center.x + scaleX * (point.x - center.x),
-          y: center.y + scaleY * (point.y - center.y)
-        });
-      }
-
-      return newPoints;
-    }
-
-    function drawContour(ctx, points, isClosed) {
-        if (isClosed === void 0) { isClosed = false; }
-        ctx.beginPath();
-        points.slice(1).forEach(function (_a, prevIdx) {
-            var x = _a.x, y = _a.y;
-            var from = points[prevIdx];
-            ctx.moveTo(from.x, from.y);
-            ctx.lineTo(x, y);
-        });
-        if (isClosed) {
-            var from = points[points.length - 1];
-            var to = points[0];
-            if (!from || !to) {
-                return;
-            }
-            ctx.moveTo(from.x, from.y);
-            ctx.lineTo(to.x, to.y);
-        }
-        ctx.stroke();
-    }
-
     function pasteFromVideo(points, x, y) {
-      // var center = { x:0, y:0 };
-      var min = { x:Infinity, y:Infinity };
-      var max = { x:0, y:0 };
-      for (let point of points) {
-        // center.x += point.x;
-        // center.y += point.y;
-        if (point.x < min.x) min.x = point.x;
-        if (point.y < min.y) min.y = point.y;
-        if (point.x > max.x) max.x = point.x;
-        if (point.y > max.y) max.y = point.y;
-      }
-      // center.x /= points.length;
-      // center.y /= points.length;
-      var width = max.x - min.x;
-      var height = max.y - min.y;
+      var measurements = pointsSize(points);
+      const min = measurements.min;
+      const width = measurements.width;
+      const height = measurements.height;
 
       testcanvas.width = width;
       testcanvas.height = height;

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      body, html {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+      }
+      canvas, video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        scale: -1 1;
+      }
+      video {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+
+    <video onloadedmetadata="resizeVideo(); detectFaces()" autoplay muted playsinline></video>
+
+    <canvas id="main"></canvas>
+
+  </body>
+
+  <script type="text/javascript" src="js/lib/face-api.js"></script>
+  <script type="text/javascript" src="js/lib/facefunctions.js"></script>
+  <script type="text/javascript">
+    var canvas = document.getElementById("main");
+    var context = canvas.getContext("2d");
+    var video = document.querySelector("video");
+    var dims;
+
+    window.onresize = function() {
+      resizeVideo();
+    }
+
+    function resizeVideo() {
+      var width = video.videoWidth;
+      var height = video.videoHeight;
+
+      var scale = 1;
+      if (width >= height) {
+        scale = window.innerWidth / width;
+      } else {
+        scale = window.innerHeight / height;
+      }
+
+      video.style.scale = (-scale)+" "+scale;
+
+      dims = faceapi.matchDimensions(canvas, video, true);
+      canvas.width *= window.devicePixelRatio;
+      canvas.height *= window.devicePixelRatio;
+      canvas.style.scale = (-scale/window.devicePixelRatio)+" "+scale/window.devicePixelRatio;
+    }
+
+    window.onload = async function() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      await video.play();
+
+      await initFaceDetection();
+    }
+
+    var facesDetected = 0;
+
+    async function detectFaces() {
+      if (video.paused || video.ended || !isFaceDetectionModelLoaded())
+        return setTimeout(detectFaces);
+
+      const options = getFaceDetectorOptions();
+      const results = await faceapi.detectAllFaces(video, options).withFaceLandmarks()
+      facesDetected = results.length;
+
+      context.reset();
+      context.scale(window.devicePixelRatio, window.devicePixelRatio);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      for (result of results) {
+        const landmarks = faceapi.resizeResults(result, dims).landmarks;
+        const leftEye = scalePoints(landmarks.getLeftEye(), 1.1);
+        const rightEye = scalePoints(landmarks.getRightEye(), 1.1);
+
+        context.fillStyle = "white";
+        fillPoints(leftEye);
+        fillPoints(rightEye);
+
+        const lh = pointsSize(leftEye).height;
+        const rh = pointsSize(rightEye).height;
+
+        context.fillStyle = "gray";
+        fillCircle(centerOfPoints(leftEye), lh/2);
+        fillCircle(centerOfPoints(rightEye), rh/2);
+      }
+
+      setTimeout(detectFaces);
+    }
+
+    function fillCircle(position, radius) {
+      context.beginPath();
+      context.arc(position.x, position.y, radius, 0, Math.PI*2);
+      context.fill();
+    }
+  </script>
+
+</html>
