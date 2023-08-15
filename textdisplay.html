@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      body, html {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+      }
+      canvas, video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        width: 100vw;
+        height: 100dvh;
+      }
+    </style>
+  </head>
+  <body>
+
+    <canvas></canvas>
+
+  </body>
+  <script type="text/javascript" src="js/toolbox.js"></script>
+  <script type="text/javascript">
+    var canvas = document.querySelector("canvas");
+    var context = canvas.getContext("2d");
+    var interval;
+
+    window.onresize = function() {
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+    }
+    window.onload = function() {
+      window.onresize();
+      draw();
+      start();
+    }
+
+    function draw() {
+      requestAnimationFrame(draw);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.resetTransform();
+      context.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      for (let word of words) {
+        word.draw();
+      }
+    }
+
+    var words = [];
+
+    class word {
+      constructor(text) {
+        this.text = text;
+
+        this.font = "20px sans-serif";
+        this.textAlign = "left";
+        this.textBaseline = "top";
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+
+        this.measure();
+
+        this.x = random(canvas.width/window.devicePixelRatio - this.width);
+        this.y = random(canvas.height/window.devicePixelRatio - this.height);
+        this.color = {
+          r:255, g:255, b:255, a:0
+        }
+
+        this.index = words.length;
+        words.push(this);
+      }
+
+      measure() {
+        const measurements = context.measureText(this.text);
+        this.width = measurements.width;
+        this.height = measurements.actualBoundingBoxDescent - measurements.actualBoundingBoxAscent;
+      }
+
+      draw() {
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+
+        this.color.a += .01;
+
+        context.fillStyle = "rgba("+this.color.r+", "+this.color.g+", "+this.color.b+", "+this.color.a+")";
+
+        this.x += 1;
+        if (this.x > canvas.width) {
+          this.delete();
+        }
+
+        context.fillText(this.text, this.x, this.y);
+      }
+
+      delete() {
+        words.splice(this.index, 1);
+        for (let i=this.index; i<words.length; i++) {
+          words[i].index--;
+        }
+      }
+    }
+
+    //
+
+    function read_data() {
+      fetch("https://script.google.com/macros/s/AKfycbyZdfdCxjugWysWX_AKgQcNR-4EDVJCYK24glY5AyAG3dRkXF2Vu8aE4s1iZ7QjGHc9/exec", {
+        method: "POST"
+      })
+      .then(function(e) {
+        e.json()
+        .then( (e) => handleData(e.responses) )
+      })
+      .catch(function(e) {
+        console.log("** error **\n"+e);
+      });
+    }
+
+    function handleData(responses) {
+      for (let response of responses) {
+        new word(response);
+      }
+    }
+
+    function start() {
+      interval = setInterval(read_data, 1000);
+    }
+    function stop() {
+      clearInterval(interval);
+    }
+  </script>
+</html>

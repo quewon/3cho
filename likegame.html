@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" content="width=device-width, user-scalable=no">
+    <title></title>
+    <style media="screen">
+      body, html {
+        touch-action: manipulation;
+        overflow: hidden;
+        -webkit-touch-callout: none; /* iOS Safari */
+          -webkit-user-select: none; /* Safari */
+           -khtml-user-select: none; /* Konqueror HTML */
+             -moz-user-select: none; /* Old versions of Firefox */
+              -ms-user-select: none; /* Internet Explorer/Edge */
+                  user-select: none; /* Non-prefixed version, currently
+                                        supported by Chrome, Edge, Opera and Firefox */
+      }
+
+      .like {
+        width: 100px;
+        aspect-ratio: 1;
+        position: absolute;
+        translate: -50% -50%;
+        animation: like-animation 500ms;
+      }
+      img {
+        width: inherit;
+        height: inherit;
+      }
+
+      @keyframes like-animation {
+        0% {
+          opacity: 0;
+          scale: 1;
+          rotate: -10deg;
+        }
+        50% {
+          opacity: 1;
+          scale: 1.1;
+        }
+        100% {
+          opacity: 0;
+          scale: 1;
+          rotate: 0deg;
+        }
+      }
+
+      .entry {
+        border: 1px solid black;
+        width: 500px;
+        margin: auto;
+        padding: 1rem;
+        font-family: sans-serif;
+        animation: .5s new-entry;
+      }
+      .entry.liked {
+        background: pink;
+      }
+      .entry.remove {
+        animation: 1s clear-entry;
+      }
+      @keyframes new-entry {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      @keyframes clear-entry {
+        0% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      .text {
+        filter: blur(0px);
+        transition: 1s;
+      }
+      .blur {
+        filter: blur(5px);
+        transition: 1s;
+      }
+    </style>
+  </head>
+  <body>
+
+  </body>
+
+  <script type="text/javascript" src="js/toolbox.js"></script>
+  <script type="text/javascript">
+    var currentEntry;
+    window.onload = function() {
+      newEntry();
+      draw();
+    }
+
+    function newEntry() {
+      currentEntry = new entry("민트초코는 정말로 맛없어...", "민트초코");
+    }
+
+    var tapCount = 0;
+    var tapTimer = 0;
+    var maxDoubleTapInterval = 25;
+    document.ontouchstart = function(e) {
+      e.preventDefault();
+      const t = e.touches[0];
+      touch(t.pageX, t.pageY);
+    }
+    document.ontouchend = function(e) {
+      e.preventDefault()
+    }
+    document.onmousedown = function(e) {
+      touch(e.pageX, e.pageY);
+    }
+
+    function draw() {
+      requestAnimationFrame(draw);
+      tapTimer++;
+      if (tapTimer > maxDoubleTapInterval) {
+        tapCount = 0;
+      }
+      if (currentEntry) currentEntry.update();
+    }
+
+    function touch(x, y) {
+      if (tapCount == 1) {
+        tapCount = 0;
+        currentEntry.like();
+        new like(new Vector2(x, y));
+      } else {
+        tapCount++;
+      }
+      tapTimer = 0;
+    }
+
+    var likes = [];
+    class like {
+      constructor(position) {
+        this.position = position || new Vector2();
+        this.element = createElement("div", {
+          className: "like",
+          parent: document.body,
+          onanimationend: this.delete.bind(this)
+        });
+
+        this.img = createElement("img", {
+          src: "res/likes/heart"+Math.ceil(random(3))+".svg",
+          parent: this.element
+        });
+
+        this.updatePosition();
+
+        this.index = likes.length;
+        likes.push(this);
+      }
+
+      delete() {
+        for (let i=this.index; i<likes.length; i++) {
+          likes[i].index--;
+        }
+        likes.splice(this.index, 1);
+        this.element.remove();
+      }
+
+      updatePosition() {
+        this.element.style.left = this.position.x+"px";
+        this.element.style.top = this.position.y+"px";
+      }
+    }
+
+    class entry {
+      constructor(text, keyword) {
+        this.element = createElement("div", {
+          className: "entry",
+          parent: document.body
+        });
+
+        this.wordElements = [];
+        for (let word of text.split(" ")) {
+          const wordElement = createElement("span", {
+            className: "text",
+            textContent: word+" ",
+            parent: this.element
+          });
+          if (!word.includes(keyword)) {
+            wordElement.classList.add("blur");
+          }
+          this.wordElements.push(wordElement);
+        }
+
+        this.time = 0;
+        this.unblurInterval = 100;
+
+        this.keyword = keyword;
+      }
+
+      update() {
+        this.time++;
+        if (this.time < this.unblurInterval) return;
+
+        this.time = 0;
+
+        for (let element of this.wordElements) {
+          if (element.classList.contains("blur")) {
+            element.classList.remove("blur");
+            return;
+          }
+        }
+      }
+
+      like() {
+        this.element.classList.add("liked");
+        write_data(this.keyword);
+        this.delete();
+      }
+
+      delete() {
+        this.element.classList.add("remove");
+        this.element.onanimationend = function() {
+          this.remove();
+          newEntry();
+        };
+      }
+    }
+
+    //
+
+    function write_data(text) {
+      const data = new FormData();
+      data.set("text", text);
+
+      fetch("https://script.google.com/macros/s/AKfycby7kPddE9TKqXA2fIdfsSnasx6zscKInysjJCuevWi4QZCoUYaADOAnaU77cDRMUjuo/exec", {
+        method: "POST",
+        body: data
+      })
+      .then(function(e) {
+        console.log("success")
+      })
+      .catch(function(e) {
+        console.log("** error **\n"+e);
+      });
+    }
+  </script>
+</html>
