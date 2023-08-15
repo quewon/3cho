@@ -203,11 +203,14 @@
 
         this.time = 0;
 
+        var blurredWords = [];
         for (let element of this.wordElements) {
           if (element.classList.contains("blur")) {
-            element.classList.remove("blur");
-            return;
+            blurredWords.push(element);
           }
+        }
+        if (blurredWords.length > 0) {
+          blurredWords[random(blurredWords.length) | 0].classList.remove("blur");
         }
       }
 

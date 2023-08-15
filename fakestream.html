@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      body, html {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      video, main {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+      }
+      video {
+        scale: -1 1;
+      }
+
+      #message-container {
+        /* background: rgba(255,0,0,.5); */
+        float: right;
+        width: 30%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        justify-content: flex-end;
+        align-items: flex-end;
+        padding: .5rem;
+        box-sizing: border-box;
+      }
+
+      .message {
+        animation: popup 400ms;
+        border: 1px solid black;
+        background: white;
+        color: black;
+        font-family: sans-serif;
+        padding: .5rem;
+        border-radius: .5rem;
+        transform-origin: right;
+        width: fit-content;
+      }
+      @keyframes popup {
+        0% {
+          max-height: 0;
+          scale: .8 1;
+          margin-bottom: 0;
+          opacity: 0;
+        }
+        50% {
+          margin-bottom: 10px;
+          opacity: 1;
+        }
+        100% {
+          max-height: 100%;
+          scale: 1 1;
+          margin-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <video onloadedmetadata="resizeVideo();" autoplay muted playsinline></video>
+    <main>
+      <div id="message-container">
+
+      </div>
+    </main>
+
+  </body>
+  <script type="text/javascript" src="js/toolbox.js"></script>
+  <script type="text/javascript">
+    var video = document.querySelector("video");
+    var main = document.querySelector("main");
+    var messageContainer = document.getElementById("message-container");
+
+    window.onresize = function() {
+      resizeVideo();
+    }
+
+    window.onload = async function() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      await video.play();
+
+      newMessage();
+    }
+
+    function resizeVideo() {
+      var width = video.videoWidth;
+      var height = video.videoHeight;
+      var scale = 1;
+      if (width >= height) {
+        scale = window.innerWidth / width;
+        main.style.width = window.innerWidth+"px";
+        main.style.height = Math.min(height*scale, window.innerHeight)+"px";
+      } else {
+        scale = window.innerHeight / height;
+        main.style.height = window.innerHeight+"px";
+        main.style.width = Math.min(width*scale, window.innerWidth)+"px";
+      }
+      video.style.scale = (-scale)+" "+scale;
+    }
+
+    class message {
+      constructor(sender, text) {
+        createElement("div", {
+          className: "message",
+          textContent: MESSAGES[random(MESSAGES.length) | 0],
+          parent: messageContainer
+        });
+      }
+    }
+
+    function newMessage() {
+      new message();
+      setTimeout(newMessage, random(500, 2000));
+    }
+
+    const MESSAGES = [
+      "어이",
+      "뭐야",
+      "안녕!!",
+      "ㅎㅎ",
+      "헐",
+      "이게 뭐임"
+    ];
+  </script>
+</html>
