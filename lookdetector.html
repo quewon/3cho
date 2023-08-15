@@ -42,16 +42,16 @@
     }
 
     function resizeVideo() {
-      var width = video.videoWidth;
-      var height = video.videoHeight;
+      var vw = video.videoWidth;
+      var vh = video.videoHeight;
+      var ww = window.innerWidth;
+      var wh = window.innerHeight;
 
-      var scale = 1;
-      if (width >= height) {
-        scale = window.innerWidth / width;
+      var scale = wh/vh;
+      if (ww >= wh && ww >= vw*scale) {
       } else {
-        scale = window.innerHeight / height;
+        scale = ww/vw;
       }
-
       video.style.scale = (-scale)+" "+scale;
 
       dims = faceapi.matchDimensions(canvas, video, true);

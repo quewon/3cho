@@ -92,17 +92,19 @@
     }
 
     function resizeVideo() {
-      var width = video.videoWidth;
-      var height = video.videoHeight;
-      var scale = 1;
-      if (width >= height) {
-        scale = window.innerWidth / width;
-        main.style.width = window.innerWidth+"px";
-        main.style.height = Math.min(height*scale, window.innerHeight)+"px";
+      var vw = video.videoWidth;
+      var vh = video.videoHeight;
+      var ww = window.innerWidth;
+      var wh = window.innerHeight;
+
+      var scale = wh/vh;
+      if (ww >= wh && ww >= vw*scale) {
+        main.style.height = wh+"px";
+        main.style.width = (vw*scale)+"px";
       } else {
-        scale = window.innerHeight / height;
-        main.style.height = window.innerHeight+"px";
-        main.style.width = Math.min(width*scale, window.innerWidth)+"px";
+        scale = ww/vw;
+        main.style.width = ww+"px";
+        main.style.height = (vh*scale)+"px";
       }
       video.style.scale = (-scale)+" "+scale;
     }
