@@ -1,10 +1,10 @@
 async function initFaceDetection() {
+  await faceapi.loadFaceLandmarkModel("js/lib/weights/")
+
   // load face detection and face landmark models
   if (!isFaceDetectionModelLoaded()) {
     await faceapi.nets.ssdMobilenetv1.load("js/lib/weights/")
   }
-
-  await faceapi.loadFaceLandmarkModel("js/lib/weights/")
 }
 
 function isFaceDetectionModelLoaded() {

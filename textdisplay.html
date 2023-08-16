@@ -7,7 +7,7 @@
       body, html {
         margin: 0;
         overflow: hidden;
-        background: black;
+        background: white;
       }
       canvas, video {
         position: absolute;
@@ -67,10 +67,10 @@
 
         this.measure();
 
-        this.x = random(canvas.width/window.devicePixelRatio - this.width);
-        this.y = random(canvas.height/window.devicePixelRatio - this.height);
+        this.x = random(window.innerWidth - this.width);
+        this.y = random(window.innerHeight - this.height);
         this.color = {
-          r:255, g:255, b:255, a:0
+          r:0, g:0, b:0, a:0
         }
 
         this.index = words.length;
