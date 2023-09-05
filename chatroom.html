@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+      :root {
+        --input-height: 50px;
+      }
+
+      body, html {
+        margin: 0;
+        overflow: hidden;
+        font-size: 40px;
+      }
+
+      main {
+        width: 100vw;
+        height: calc(100dvh - var(--input-height));
+        overflow-x: hidden;
+        overflow-y: scroll;
+
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+        justify-content: end;
+        gap: .5em;
+        padding: .5em;
+        box-sizing: border-box;
+      }
+
+      .response {
+        background: lightblue;
+        border-radius: .5em;
+      }
+      .response.right {
+        background: lightgray;
+        align-self: end;
+      }
+
+      #inputContainer {
+        width: 100vw;
+        height: var(--input-height);
+        display: flex;
+        justify-content: space-between;
+      }
+
+      input {
+        width: 100vw;
+        font-family: inherit;
+        font-size: inherit;
+      }
+    </style>
+  </head>
+  <body>
+
+    <main>
+
+    </main>
+
+    <div id="inputContainer">
+      <input type="text" autofocus />
+      <button onclick="sendMessage()">></button>
+    </div>
+
+    <template id="template-텍스트">
+
+    </template>
+
+  </body>
+  <script defer type="text/javascript">
+    var BANK = {};
+
+    function load_bank(onload) {
+      const API_KEY = "AIzaSyCF5muJe5QsZnMSwjmFzofH5b3Ay-GgccY";
+      const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
+
+      function SheetArrayToObject(array) {
+        if (array == undefined) return undefined;
+
+        const keys = array[0];
+        const output = [];
+
+        for (let row=1; row<array.length; row++) {
+          var entry = {};
+          var key = array[row][0];
+
+          for (let column=1; column<keys.length; column++) {
+            var value = array[row][column];
+            entry[keys[column]] = value;
+          }
+
+          output[key] = entry;
+        }
+
+        return output;
+      }
+
+      fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/output/?key="+API_KEY)
+      .then((response) => response.json())
+      .then((data) => {
+        BANK = SheetArrayToObject(data.values);
+        if (onload) onload();
+      });
+    }
+
+    const main = document.querySelector("main");
+    const input = document.querySelector("input");
+
+    function receiveMessage(response) {
+      var element = document.createElement("div");
+      element.classList.add("response");
+      element.classList.add(response["형식"]);
+      element.textContent = response["출력"];
+      main.appendChild(element);
+    }
+
+    function sendMessage() {
+      const message = input.value.trim();
+      input.value = "";
+      if (message == "") return;
+
+      new Message("right", message);
+
+      var matchedResponses = [];
+
+      for (let key in BANK) {
+        if (message.includes(key)) {
+          matchedResponses.push(BANK[key]);
+        }
+      }
+
+      if (matchedResponses.length > 0) {
+        const response = matchedResponses[0];
+        new Message("left", response["출력"], response["형식"]);
+      }
+    }
+
+    class Message {
+      constructor(position, text, type) {
+        var element = document.createElement("div");
+        element.classList.add("response");
+        if (type) element.classList.add(type);
+        element.classList.add(position);
+        element.textContent = text || "";
+
+        this.element = element;
+
+        if (position == "left") {
+          setTimeout(function() {
+            main.appendChild(this.element);
+          }.bind(this), Math.random() * 1000 + 500);
+        } else {
+          main.appendChild(this.element);
+        }
+      }
+    }
+
+    load_bank(function() {
+      console.log(BANK);
+
+      input.addEventListener("keyup", function(e) {
+        if (e.key == "Enter") {
+          sendMessage();
+        }
+      });
+      input.onblur = function() {
+        this.focus();
+      };
+    });
+  </script>
+</html>
