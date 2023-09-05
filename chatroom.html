@@ -90,7 +90,11 @@
             entry[keys[column]] = value;
           }
 
-          output[key] = entry;
+          if (output[key]) {
+            output[key].push(entry);
+          } else {
+            output[key] = [entry];
+          }
         }
 
         return output;
@@ -126,12 +130,13 @@
 
       for (let key in BANK) {
         if (message.includes(key)) {
-          matchedResponses.push(BANK[key]);
+          for (let response of BANK[key]) {
+            matchedResponses.push(response);
+          }
         }
       }
 
-      if (matchedResponses.length > 0) {
-        const response = matchedResponses[0];
+      for (let response of matchedResponses) {
         new Message("left", response["출력"], response["형식"]);
       }
     }
