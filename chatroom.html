@@ -4,51 +4,203 @@
     <meta charset="utf-8">
     <title></title>
     <style media="screen">
+      @import url('https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css');
+      @import url('https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css');
+.spoka * { font-family: 'Spoqa Han Sans', 'Spoqa Han Sans JP', 'Sans-serif'; }
+
       :root {
-        --input-height: 50px;
+        --input-height: 2em;
+        --red: #d14141;
       }
 
       body, html {
         margin: 0;
         overflow: hidden;
-        font-size: 40px;
+        font-size: 30px;
+        font-family: 'Spoqa Han Sans', sans-serif;
+        /* font-smooth: never;
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: grayscale; */
+        background: var(--red);
       }
 
       main {
         width: 100vw;
-        height: calc(100dvh - var(--input-height));
+        height: calc(100dvh - var(--input-height) - .5em);
         overflow-x: hidden;
         overflow-y: scroll;
 
         display: flex;
-        flex-direction: column;
+        flex-direction: column-reverse;
         align-items: baseline;
-        justify-content: end;
         gap: .5em;
         padding: .5em;
         box-sizing: border-box;
+        background: white;
+      }
+      a {
+        color: var(--red);
+        cursor: pointer;
+      }
+      a.found {
+        color: gray;
       }
 
       .response {
-        background: lightblue;
-        border-radius: .5em;
+        animation: popup 400ms;
+        transform-origin: left;
+        display: flex;
+        gap: .25rem;
       }
-      .response.right {
+      @keyframes popup {
+        0% {
+          max-height: 0;
+          scale: .8 1;
+          margin-bottom: 0;
+          opacity: 0;
+        }
+        50% {
+          margin-bottom: 10px;
+          opacity: 1;
+        }
+        100% {
+          max-height: 100%;
+          scale: 1 1;
+          margin-bottom: 0;
+        }
+      }
+      .response .icon {
+        width: 2em;
+        height: 2em;
+        border-radius: 50%;
         background: lightgray;
+      }
+      .response .content {
+        padding: .5em;
+        background: lightgray;
+        border-radius: 1em;
+      }
+
+      .response.right {
         align-self: end;
+        transform-origin: right;
+      }
+      .response.right .icon {
+        display: none;
+      }
+      .response.right .content {
+        background: var(--red);
+        color: white;
+      }
+      .response.right a {
+        background: white;
+      }
+      .response.right:has(a) .content {
+        background: white;
+        border: 1px solid var(--red);
+        box-sizing: border-box;
+      }
+
+      .response.date {
+        font-size: .8em;
+        color: white;
+        opacity: .8;
+        align-self: center;
+        animation: none;
+        color: black;
+      }
+      .response.date .icon {
+        display: none;
       }
 
       #inputContainer {
-        width: 100vw;
+        width: calc(100vw - .5em);
         height: var(--input-height);
         display: flex;
         justify-content: space-between;
+        /* border: 1px solid black; */
+        border-radius: 1em;
+        margin: .25em;
+        background: white;
+        overflow: hidden;
+      }
+      #inputContainer button {
+        /* border: 1px solid black; */
+        background: var(--red);
+        color: white;
+        border-radius: 50%;
+        width: var(--input-height);
+        margin: .1rem;
       }
 
       input {
         width: 100vw;
         font-family: inherit;
         font-size: inherit;
+        padding: .5em;
+        margin: 0;
+        outline: none;
+        border: none;
+        background: transparent;
+      }
+      input:disabled {
+        background: lightgray;
+      }
+      input:disabled::placeholder {
+        text-align: center;
+      }
+      #inputContainer:has(input:disabled) {
+        background: lightgray;
+      }
+
+      .gone {
+        display: none;
+      }
+
+      #start-menu {
+        width: 100vw;
+        height: 101dvh;
+        background: var(--red);
+        color: white;
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 20px;
+      }
+      #start-menu > div {
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        translate: -50% -50%;
+        width: 100%;
+        text-align: center;
+      }
+      button {
+        background: transparent;
+        border: none;
+        color: black;
+        padding: .5em;
+        padding-top: 0em;
+        padding-bottom: 0em;
+        font-size: inherit;
+        font-family: inherit;
+      }
+      button:hover {
+        cursor: pointer;
+        opacity: .9
+      }
+      button:active {
+        background: black;
+        color: white;
+      }
+
+      #start-menu button {
+        border: 1px solid white;
+        color: white;
+      }
+      #start-menu button:active {
+        background: white;
+        color: var(--red);
       }
     </style>
   </head>
@@ -59,8 +211,16 @@
     </main>
 
     <div id="inputContainer">
-      <input type="text" autofocus />
+      <input type="text" autofocus placeholder="키워드를 쳐보세요" />
       <button onclick="sendMessage()">></button>
+    </div>
+
+    <div id="start-menu">
+      <div>
+        17세기 소년을 죽이는 법
+        <br><br>
+        <button onclick="start()">시작</button>
+      </div>
     </div>
 
     <template id="template-텍스트">
@@ -83,17 +243,16 @@
 
         for (let row=1; row<array.length; row++) {
           var entry = {};
-          var key = array[row][0];
+          var inputArray = array[row][0].split(",");
 
-          for (let column=1; column<keys.length; column++) {
-            var value = array[row][column];
-            entry[keys[column]] = value;
-          }
+          if (array[row].length==1) continue;
 
-          if (output[key]) {
-            output[key].push(entry);
-          } else {
-            output[key] = [entry];
+          for (let inputKey of inputArray) {
+            output[inputKey] = {
+              messages: array[row][1].split("\n"),
+              rowId: row,
+              color: array[row].length <= 2 ? true : array[row][2]
+            };
           }
         }
 
@@ -108,6 +267,7 @@
       });
     }
 
+    const startMenu = document.getElementById("start-menu");
     const main = document.querySelector("main");
     const input = document.querySelector("input");
 
@@ -119,26 +279,39 @@
       main.appendChild(element);
     }
 
-    function sendMessage() {
+    var keywordsFound;
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    async function sendMessage() {
+      if (input.disabled) return;
+
       const message = input.value.trim();
-      input.value = "";
       if (message == "") return;
 
       new Message("right", message);
 
-      var matchedResponses = [];
+      input.value = "";
+      input.blur();
+      input.disabled = true;
+      input.placeholder = "...";
+
+      var matchedIds = [];
 
       for (let key in BANK) {
         if (message.includes(key)) {
-          for (let response of BANK[key]) {
-            matchedResponses.push(response);
+          if (!keywordsFound.includes(key)) keywordsFound.push(key);
+          if (matchedIds.includes(BANK[key].rowId)) continue;
+          matchedIds.push(BANK[key].rowId);
+          await delay(1000);
+          for (let response of BANK[key].messages) {
+            new Message("left", response);
+            await delay(response.length * 100);
           }
         }
       }
 
-      for (let response of matchedResponses) {
-        new Message("left", response["출력"], response["형식"]);
-      }
+      input.placeholder = "키워드를 쳐보세요";
+      input.disabled = false;
+      input.focus();
     }
 
     class Message {
@@ -147,31 +320,61 @@
         element.classList.add("response");
         if (type) element.classList.add(type);
         element.classList.add(position);
-        element.textContent = text || "";
+
+        var icon = document.createElement("div");
+        icon.classList.add("icon");
+        element.appendChild(icon);
+
+        var content = document.createElement("div");
+        content.classList.add("content");
+        element.appendChild(content);
+
+        if (true) {
+          for (let key in BANK) {
+            if (BANK[key].color == "FALSE") continue;
+            text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
+          }
+          if (text.includes(": ")) {
+            text = text.split(": ")[1];
+          }
+          content.innerHTML = text;
+        } else {
+          content.textContent = text || "";
+        }
 
         this.element = element;
 
-        if (position == "left") {
-          setTimeout(function() {
-            main.appendChild(this.element);
-          }.bind(this), Math.random() * 1000 + 500);
-        } else {
-          main.appendChild(this.element);
-        }
+        main.prepend(this.element);
+
+        main.scrollTop = main.scrollHeight;
+        element.onanimationend = function() {
+          main.scrollTop = main.scrollHeight;
+        };
       }
     }
 
     load_bank(function() {
-      console.log(BANK);
-
       input.addEventListener("keyup", function(e) {
         if (e.key == "Enter") {
           sendMessage();
         }
       });
-      input.onblur = function() {
-        this.focus();
-      };
+      // input.onblur = function() {
+      //   this.focus();
+      // };
     });
+
+    function start() {
+      input.value = "";
+      while (main.lastElementChild) {
+        main.lastElementChild.remove();
+      }
+      keywordsFound = [];
+      startMenu.classList.add("gone");
+      input.focus();
+
+      const date = new Date();
+      new Message("center", "2023년 8월 10일", "date");
+    }
   </script>
 </html>
