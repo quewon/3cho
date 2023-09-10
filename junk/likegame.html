@@ -233,9 +233,10 @@
 
     function write_data(text) {
       const data = new FormData();
+      data.set("timestamp", new Date().getTime());
       data.set("text", text);
 
-      fetch("https://script.google.com/macros/s/AKfycby7kPddE9TKqXA2fIdfsSnasx6zscKInysjJCuevWi4QZCoUYaADOAnaU77cDRMUjuo/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbyDhYNQVQZOk_uLJl1Rn6tQJqyDRfhMjs-sjKwobh21fnq16fhyVjZgSL9e9uQNEcfz/exec", {
         method: "POST",
         body: data
       })

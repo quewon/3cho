@@ -74,11 +74,18 @@
         height: 2em;
         border-radius: 50%;
         background: lightgray;
+        aspect-ratio: 1;
       }
       .response .content {
         padding: .5em;
         background: lightgray;
         border-radius: 1em;
+      }
+      .response.player .content {
+        background: lightblue;
+      }
+      .response.player .icon {
+        background: blue;
       }
 
       .response.right {
@@ -99,6 +106,7 @@
         background: white;
         border: 1px solid var(--red);
         box-sizing: border-box;
+        color: black;
       }
 
       .response.date {
@@ -229,12 +237,11 @@
 
   </body>
   <script defer type="text/javascript">
+    const API_KEY = "AIzaSyCF5muJe5QsZnMSwjmFzofH5b3Ay-GgccY";
+    const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
     var BANK = {};
 
     function load_bank(onload) {
-      const API_KEY = "AIzaSyCF5muJe5QsZnMSwjmFzofH5b3Ay-GgccY";
-      const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
-
       function SheetArrayToObject(array) {
         if (array == undefined) return undefined;
 
@@ -288,30 +295,44 @@
       if (message == "") return;
 
       new Message("right", message);
+      write_data(message);
 
       input.value = "";
       input.blur();
       input.disabled = true;
       input.placeholder = "...";
 
+      await playResponses(message);
+
+      input.placeholder = "키워드를 쳐보세요";
+      input.disabled = false;
+      input.focus();
+    }
+
+    async function playResponses(message) {
       var matchedIds = [];
+      var messages = [];
 
       for (let key in BANK) {
         if (message.includes(key)) {
           if (!keywordsFound.includes(key)) keywordsFound.push(key);
           if (matchedIds.includes(BANK[key].rowId)) continue;
           matchedIds.push(BANK[key].rowId);
-          await delay(1000);
           for (let response of BANK[key].messages) {
-            new Message("left", response);
-            await delay(response.length * 100);
+            messages.push(response);
           }
         }
       }
 
-      input.placeholder = "키워드를 쳐보세요";
-      input.disabled = false;
-      input.focus();
+      if (messages.length > 0) {
+        await delay(messages[0].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
+      }
+      for (let i=0; i<messages.length; i++) {
+        new Message("left", messages[i]);
+        if (i<messages.length-1) {
+          await delay(messages[i].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 100);
+        }
+      }
     }
 
     class Message {
@@ -329,7 +350,7 @@
         content.classList.add("content");
         element.appendChild(content);
 
-        if (true) {
+        if (type != "player") {
           for (let key in BANK) {
             if (BANK[key].color == "FALSE") continue;
             text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
@@ -364,6 +385,55 @@
       // };
     });
 
+    function read_data() {
+      const timestamp = new Date().getTime();
+
+      fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/history/?key="+API_KEY)
+      .then((response) => response.json())
+      .then((data) => {
+        if (chatOpen) setTimeout(read_data, 2000);
+        
+        for (let i=1; i<data.values.length; i++) {
+          const messageTimestamp = data.values[i][0];
+          const messageContent = data.values[i][1];
+
+          if (
+            messageTimestamp >= startTimestamp &&
+            (
+              !loggedMessages[messageTimestamp] || loggedMessages[messageTimestamp] != messageContent
+            )
+          ) {
+            loggedMessages[messageTimestamp] = messageContent;
+            new Message("left", messageContent, "player");
+            playResponses(messageContent);
+          }
+        }
+      });
+    }
+
+    function write_data(text) {
+      const timestamp = new Date().getTime();
+      const data = new FormData();
+      data.set("timestamp", timestamp);
+      data.set("text", text);
+
+      loggedMessages[timestamp] = text;
+
+      fetch("https://script.google.com/macros/s/AKfycbzYX6v5YFLqdMqhaAt61C6epn6emf5SY2YFU4_ILEJv3EiRmsjPo_NbfJ4Qdt4yAI3G/exec", {
+        method: "POST",
+        body: data
+      })
+      .then(function(e) {
+        console.log("success")
+      })
+      .catch(function(e) {
+        console.log("** error **\n"+e);
+      });
+    }
+
+    var startTimestamp;
+    var loggedMessages = {};
+    var chatOpen = false;
     function start() {
       input.value = "";
       while (main.lastElementChild) {
@@ -373,8 +443,11 @@
       startMenu.classList.add("gone");
       input.focus();
 
-      const date = new Date();
-      new Message("center", "2023년 8월 10일", "date");
+      startTimestamp = new Date();
+      new Message("center", startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "date");
+
+      chatOpen = true;
+      setTimeout(read_data, 1000);
     }
   </script>
 </html>
