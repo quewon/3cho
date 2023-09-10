@@ -81,12 +81,6 @@
         background: lightgray;
         border-radius: 1em;
       }
-      .response.player .content {
-        background: lightblue;
-      }
-      .response.player .icon {
-        background: blue;
-      }
 
       .response.right {
         align-self: end;
@@ -95,18 +89,21 @@
       .response.right .icon {
         display: none;
       }
-      .response.right .content {
+      .response.right .content, .response.player .content {
         background: var(--red);
         color: white;
       }
-      .response.right a {
+      .response.right a, .response.player a {
         background: white;
       }
-      .response.right:has(a) .content {
+      .response.right:has(a) .content, .response.player:has(a) .content {
         background: white;
         border: 1px solid var(--red);
         box-sizing: border-box;
         color: black;
+      }
+      .response.player .icon {
+        background: var(--red);
       }
 
       .response.date {
@@ -298,24 +295,25 @@
       write_data(message);
 
       input.value = "";
+
+      await playResponses(message);
+    }
+
+    async function playResponses(message) {
       input.blur();
       input.disabled = true;
       input.placeholder = "...";
 
-      await playResponses(message);
-
-      input.placeholder = "키워드를 쳐보세요";
-      input.disabled = false;
-      input.focus();
-    }
-
-    async function playResponses(message) {
       var matchedIds = [];
       var messages = [];
 
       for (let key in BANK) {
         if (message.includes(key)) {
-          if (!keywordsFound.includes(key)) keywordsFound.push(key);
+          if (!keywordsFound.includes(key)) {
+            keywordsFound.push(key);
+          } else {
+            continue;
+          }
           if (matchedIds.includes(BANK[key].rowId)) continue;
           matchedIds.push(BANK[key].rowId);
           for (let response of BANK[key].messages) {
@@ -333,6 +331,10 @@
           await delay(messages[i].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 100);
         }
       }
+
+      input.placeholder = "키워드를 쳐보세요";
+      input.disabled = false;
+      input.focus();
     }
 
     class Message {
@@ -350,18 +352,14 @@
         content.classList.add("content");
         element.appendChild(content);
 
-        if (type != "player") {
-          for (let key in BANK) {
-            if (BANK[key].color == "FALSE") continue;
-            text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
-          }
-          if (text.includes(": ")) {
-            text = text.split(": ")[1];
-          }
-          content.innerHTML = text;
-        } else {
-          content.textContent = text || "";
+        for (let key in BANK) {
+          if (BANK[key].color == "FALSE") continue;
+          text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
         }
+        if (text.includes(": ")) {
+          text = text.split(": ")[1];
+        }
+        content.innerHTML = text;
 
         this.element = element;
 
@@ -392,7 +390,9 @@
       .then((response) => response.json())
       .then((data) => {
         if (chatOpen) setTimeout(read_data, 2000);
-        
+
+        if (input.disabled) return;
+
         for (let i=1; i<data.values.length; i++) {
           const messageTimestamp = data.values[i][0];
           const messageContent = data.values[i][1];
