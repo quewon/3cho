@@ -24,6 +24,13 @@
         background: var(--red);
       }
 
+      body {
+        width: 100vw;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
       main {
         width: 100vw;
         height: calc(100dvh - var(--input-height) - .5em);
@@ -70,8 +77,8 @@
         }
       }
       .response .icon {
-        width: 2em;
-        height: 2em;
+        width: 1.5em;
+        height: 1.5em;
         border-radius: 50%;
         background: lightgray;
         aspect-ratio: 1;
@@ -81,6 +88,13 @@
         background: lightgray;
         border-radius: 1em;
       }
+
+      /* .response.left.first .content {
+        border-top-left-radius: 0;
+      }
+      .response.right.first .content {
+        border-top-right-radius: 0;
+      } */
 
       .response.right {
         align-self: end;
@@ -202,10 +216,16 @@
       #start-menu button {
         border: 1px solid white;
         color: white;
+        margin-bottom: .25rem;
       }
       #start-menu button:active {
         background: white;
         color: var(--red);
+      }
+      #start-menu button.checked {
+        background: white;
+        color: var(--red);
+        pointer-events: none;
       }
     </style>
   </head>
@@ -223,6 +243,9 @@
     <div id="start-menu">
       <div>
         17세기 소년을 죽이는 법
+        <br><br>
+        <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)" class="checked">기본 모드</button><br>
+        <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
         <br><br>
         <button onclick="start()">시작</button>
       </div>
@@ -325,10 +348,25 @@
       if (messages.length > 0) {
         await delay(messages[0].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
       }
+
+      var names = {};
       for (let i=0; i<messages.length; i++) {
-        new Message("left", messages[i]);
+        var text = messages[i];
+        var name = "";
+
+        if (text.includes(": ")) {
+          const a = text.split(": ");
+          name = a[0];
+          text = a[1];
+        }
+
+        if (!names[name]) {
+          names[name] = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+        }
+
+        new Message("left", text, null, names[name]);
         if (i<messages.length-1) {
-          await delay(messages[i].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 100);
+          await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
         }
       }
 
@@ -338,7 +376,7 @@
     }
 
     class Message {
-      constructor(position, text, type) {
+      constructor(position, text, type, iconColor) {
         var element = document.createElement("div");
         element.classList.add("response");
         if (type) element.classList.add(type);
@@ -346,18 +384,29 @@
 
         var icon = document.createElement("div");
         icon.classList.add("icon");
+        element.classList.add("first");
+        if (iconColor) {
+          icon.style.background = iconColor;
+          const prevMessageColor = main.firstElementChild.querySelector(".icon").style.background;
+          if (prevMessageColor == icon.style.background) {
+            icon.style.background = "transparent";
+            element.classList.remove("first");
+          }
+        }
+        if (position == "right" && main.firstElementChild.classList.contains("right")) {
+          element.classList.remove("first");
+        }
         element.appendChild(icon);
 
         var content = document.createElement("div");
         content.classList.add("content");
         element.appendChild(content);
 
-        for (let key in BANK) {
-          if (BANK[key].color == "FALSE") continue;
-          text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
-        }
-        if (text.includes(": ")) {
-          text = text.split(": ")[1];
+        if (easyMode) {
+          for (let key in BANK) {
+            if (BANK[key].color == "FALSE") continue;
+            text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
+          }
         }
         content.innerHTML = text;
 
@@ -378,6 +427,7 @@
           sendMessage();
         }
       });
+      restart();
       // input.onblur = function() {
       //   this.focus();
       // };
@@ -432,8 +482,28 @@
     }
 
     var startTimestamp;
-    var loggedMessages = {};
-    var chatOpen = false;
+    var loggedMessages;
+    var chatOpen;
+    var easyMode;
+
+    function restart() {
+      loggedMessages = {}
+      chatOpen = false;
+      easyMode = false;
+    }
+
+    function changeMode(mode) {
+      if (mode == "easy") {
+        easyMode = true;
+      } else {
+        easyMode = false;
+      }
+    }
+    function checkButton(removeChecked, addChecked) {
+      removeChecked.classList.remove("checked");
+      addChecked.classList.add("checked");
+    }
+
     function start() {
       input.value = "";
       while (main.lastElementChild) {
