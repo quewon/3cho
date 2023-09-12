@@ -305,6 +305,8 @@
         <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)" class="checked">기본 모드</button><br>
         <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
         <br><br>
+        <div id="mode-desc"></div>
+        <br>
         <button onclick="start()">시작</button>
       </div>
     </div>
@@ -405,6 +407,7 @@
       "#dea937"
     ];
     const scrollDownIcon = document.getElementById("scroll-icon");
+    const modeDesc = document.getElementById("mode-desc");
     var currentUserColor = 0;
 
     main.addEventListener("scroll", function(e) {
@@ -663,8 +666,10 @@
     function changeMode(mode) {
       if (mode == "easy") {
         easyMode = true;
+        modeDesc.innerHTML = "[쉬운 모드]<br>콘텐츠를 쉽게 접근할 수 있지만, 다른 관람자와 연동이 안됩니다.<br>기본 모드를 먼저 경험해본 관람자에게 추천합니다."
       } else {
         easyMode = false;
+        modeDesc.innerHTML = "[기본 모드]<br>의도된 관람 방식입니다.";
       }
     }
     function checkButton(removeChecked, addChecked) {
