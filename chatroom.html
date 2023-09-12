@@ -345,7 +345,7 @@
       if (message == "") return;
 
       new Message("right", message);
-      write_data(message);
+      if (!easyMode) write_data(message);
 
       input.value = "";
 
