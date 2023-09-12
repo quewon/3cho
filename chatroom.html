@@ -322,11 +322,14 @@
           if (array[row].length==1) continue;
 
           for (let inputKey of inputArray) {
+            console.log(inputKey, array[row].length <= 3 ? false : array[row][3] == "TRUE");
+
             output[inputKey.replaceAll(" ","")] = {
               messages: array[row][1].split("\n"),
               rowId: row,
-              color: array[row].length <= 2 ? true : array[row][2],
-              isHelp: row==HELP_ID
+              color: array[row].length <= 2 ? true : array[row][2] == "TRUE",
+              isHelp: row==HELP_ID,
+              showOnce: array[row].length <= 3 ? false : array[row][3] == "TRUE",
             };
           }
         }
@@ -420,6 +423,10 @@
       //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
         if (message.includes(key)) {
+          if (BANK[key].showOnce && readResponses.indexOf(""+BANK[key].rowId) != -1) {
+            continue;
+          }
+
           matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
           if (BANK[key].isHelp) {
             hasHelp = true;
@@ -518,7 +525,7 @@
 
         if (easyMode) {
           for (let key in BANK) {
-            if (BANK[key].color == "FALSE") continue;
+            if (!BANK[key].color) continue;
 
             var keywordFound = false;
             for (let id of readResponses) {
