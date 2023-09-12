@@ -437,6 +437,8 @@
         await delay(firstMessage.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
       }
 
+      var assignedNames = {};
+
       for (let i=0; i<matchedIds.length; i++) {
         currentUserColor++;
         if (currentUserColor >= userColors.length) currentUserColor = 0;
@@ -455,7 +457,20 @@
             name = a[0];
             text = a[1];
           }
-          if (!assignedNames[name]) assignedNames[name] = generateName();
+          if (!assignedNames[name]) {
+            var nameExists = true;
+            while (nameExists) {
+              assignedNames[name] = generateName();
+
+              nameExists = false;
+              for (let uniqueId in assignedNames) {
+                if (uniqueId == name) continue;
+                if (assignedNames[uniqueId] == assignedNames[name]) {
+                  nameExists = true;
+                }
+              }
+            }
+          }
           new Message("left", text, null, color, assignedNames[name]);
           if (!chatOpen) return;
           if (j<arr.length-1 || i<matchedIds.length-1) {
@@ -598,7 +613,6 @@
     var easyMode;
     var playerUsername;
     var readResponses;
-    var assignedNames;
 
     function restart() {
       loggedMessages = {}
@@ -612,7 +626,6 @@
       startMenu.classList.remove("gone");
       playerUsername = generateName();
       readResponses = [];
-      assignedNames = {};
     }
 
     function generateName() {
