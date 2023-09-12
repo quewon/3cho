@@ -99,10 +99,24 @@
         background: lightgray;
         border-radius: 1em;
       }
-      .response.first .content {
+      .like {
+        opacity: 0;
+      }
+      .response:hover .like {
+        opacity: .5;
+      }
+      .like.checked {
+        opacity: 1 !important;
+      }
+      .like:active {
+        opacity: 1 !important;
+        background: transparent;
+      }
+
+      .response.first .content, .response.first .like {
         margin-top: 1.5rem;
       }
-      .response.first.right .content {
+      .response.first.right .content, .response.right .like {
         margin-top: 0;
       }
 
@@ -116,9 +130,6 @@
       .response.right {
         align-self: end;
         transform-origin: right;
-      }
-      .response.right .icon {
-        display: none;
       }
       .response.right .content, .response.player .content {
         background: var(--red);
@@ -145,7 +156,7 @@
         animation: none;
         color: black;
       }
-      .response.date .icon {
+      .response.date .icon, .response.date .like {
         display: none;
       }
 
@@ -546,11 +557,24 @@
         if (position == "right" && main.firstElementChild.classList.contains("right")) {
           element.classList.remove("first");
         }
-        element.appendChild(icon);
+        if (position != "right") element.appendChild(icon);
 
         var content = document.createElement("div");
         content.classList.add("content");
         element.appendChild(content);
+
+        var like = document.createElement("button");
+        like.textContent = "❤️";
+        like.classList.add("like");
+        like.onclick = function() {
+          this.classList.toggle("checked");
+        };
+        if (position == "right") {
+          element.prepend(like);
+        } else {
+          element.appendChild(like);
+        }
+        this.likeElement = like;
 
         if (easyMode) {
           for (let key in BANK) {
