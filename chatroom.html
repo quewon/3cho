@@ -299,6 +299,8 @@
 
   </body>
   <script defer type="text/javascript">
+    // data
+
     const API_KEY = "AIzaSyCF5muJe5QsZnMSwjmFzofH5b3Ay-GgccY";
     const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
     var BANK = {};
@@ -375,6 +377,8 @@
       });
     }
 
+    // dom stuff
+
     const startMenu = document.getElementById("start-menu");
     const main = document.querySelector("main");
     const input = document.querySelector("input");
@@ -384,7 +388,6 @@
     ];
     var currentUserColor = 0;
 
-    var keywordsFound;
     const delay = ms => new Promise(res => setTimeout(res, ms));
     async function sendMessage() {
       if (input.disabled) return;
@@ -517,7 +520,16 @@
         if (easyMode) {
           for (let key in BANK) {
             if (BANK[key].color == "FALSE") continue;
-            text = text.replaceAll(key, "<a class='"+(keywordsFound.includes(key) ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
+
+            var keywordFound = false;
+            for (let id of readResponses) {
+              if (BANK[key].rowId == id) {
+                keywordFound = true;
+                break;
+              }
+            }
+
+            text = text.replaceAll(key, "<a class='"+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
           }
         }
         content.innerHTML = text;
@@ -527,31 +539,6 @@
         main.prepend(this.element);
       }
     }
-
-    var _loadCount = 0;
-
-    function init() {
-      console.log("program loaded");
-
-      input.addEventListener("keyup", function(e) {
-        if (e.key == "Enter") {
-          sendMessage();
-        }
-      });
-      restart();
-    }
-
-    load_usernames(function() {
-      if (++_loadCount == 2) {
-        init();
-      }
-    });
-
-    load_bank(function() {
-      if (++_loadCount == 2) {
-        init();
-      }
-    });
 
     function read_data() {
       const timestamp = new Date().getTime();
@@ -653,7 +640,6 @@
       while (main.lastElementChild) {
         main.lastElementChild.remove();
       }
-      keywordsFound = [];
       startMenu.classList.add("gone");
       input.focus();
 
@@ -663,5 +649,34 @@
       chatOpen = true;
       setTimeout(read_data, 1000);
     }
+
+    var _loadCount = 0;
+
+    document.body.classList.add("gone");
+
+    function init() {
+      console.log("program loaded");
+
+      document.body.classList.remove("gone");
+
+      input.addEventListener("keyup", function(e) {
+        if (e.key == "Enter") {
+          sendMessage();
+        }
+      });
+      restart();
+    }
+
+    load_usernames(function() {
+      if (++_loadCount == 2) {
+        init();
+      }
+    });
+
+    load_bank(function() {
+      if (++_loadCount == 2) {
+        init();
+      }
+    });
   </script>
 </html>
