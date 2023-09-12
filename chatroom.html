@@ -171,6 +171,20 @@
         aspect-ratio: 1;
       }
 
+      #scroll-icon {
+        position: absolute;
+        bottom: 3rem;
+        left: 50%;
+        translate: -50% 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: var(--red);
+        border-radius: 50%;
+        cursor: pointer;
+        text-align: center;
+        color: white;
+      }
+
       input {
         width: 100vw;
         font-family: inherit;
@@ -282,6 +296,8 @@
       <button onclick="sendMessage()">></button>
     </div>
 
+    <div id="scroll-icon">↓</div>
+
     <div id="start-menu">
       <div>
         <b>[17세기 소년을 죽이는 법]</b>
@@ -322,8 +338,6 @@
           if (array[row].length==1) continue;
 
           for (let inputKey of inputArray) {
-            console.log(inputKey, array[row].length <= 3 ? false : array[row][3] == "TRUE");
-
             output[inputKey.replaceAll(" ","")] = {
               messages: array[row][1].split("\n"),
               rowId: row,
@@ -390,7 +404,18 @@
       "#348feb",
       "#dea937"
     ];
+    const scrollDownIcon = document.getElementById("scroll-icon");
     var currentUserColor = 0;
+
+    main.addEventListener("scroll", function(e) {
+      if (main.scrollTop == 0) {
+        scrollDownIcon.classList.add("gone");
+      }
+    });
+    scrollDownIcon.onclick = function(e) {
+      main.scrollTop = 0;
+      this.classList.add("gone");
+    }
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     async function sendMessage() {
@@ -403,6 +428,7 @@
       if (!easyMode) write_data(message);
 
       input.value = "";
+      main.scrollTop = 0;
 
       await playResponses(message);
     }
@@ -543,6 +569,10 @@
         this.element = element;
 
         main.prepend(this.element);
+
+        if (main.scrollTop != 0) {
+          scrollDownIcon.classList.remove("gone");
+        }
       }
     }
 
@@ -616,6 +646,7 @@
       input.blur();
       input.disabled = false;
       input.placeholder = "키워드를 쳐보세요";
+      scrollDownIcon.classList.add("gone");
       changeMode("normal");
       checkButton(startMenu.querySelectorAll("button")[1], startMenu.querySelectorAll("button")[0]);
       startMenu.classList.remove("gone");
