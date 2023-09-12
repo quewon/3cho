@@ -381,6 +381,8 @@
         matchedMessageArrays[helpId].delete();
       }
 
+      if (!chatOpen) return;
+
       const matchedIds = Object.keys(matchedMessageArrays);
       if (matchedIds.length > 0) {
         const firstMessage = matchedMessageArrays[matchedIds[0]][0];
@@ -403,6 +405,7 @@
             text = a[1];
           }
           new Message("left", text, null, color, name);
+          if (!chatOpen) return;
           if (j<arr.length-1 || i<matchedIds.length-1) {
             await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
           }
@@ -523,6 +526,10 @@
       chatOpen = false;
       easyMode = false;
       input.blur();
+      input.disabled = false;
+      input.placeholder = "키워드를 쳐보세요";
+      changeMode("normal");
+      checkButton(startMenu.querySelectorAll("button")[1], startMenu.querySelectorAll("button")[0]);
       startMenu.classList.remove("gone");
     }
 
