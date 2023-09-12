@@ -302,7 +302,8 @@
             output[inputKey] = {
               messages: array[row][1].split("\n"),
               rowId: row,
-              color: array[row].length <= 2 ? true : array[row][2]
+              color: array[row].length <= 2 ? true : array[row][2],
+              isHelp: row==2
             };
           }
         }
@@ -321,6 +322,11 @@
     const startMenu = document.getElementById("start-menu");
     const main = document.querySelector("main");
     const input = document.querySelector("input");
+    const userColors = [
+      "#348feb",
+      "#dea937"
+    ];
+    var currentUserColor = 0;
 
     function receiveMessage(response) {
       var element = document.createElement("div");
@@ -351,46 +357,55 @@
       input.disabled = true;
       input.placeholder = "...";
 
-      var matchedIds = [];
       var messages = [];
+      var hasHelp = false;
+      var helpId = null;
+      var hasNonHelp = false;
 
+      var matchedMessageArrays = {};
+
+      //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
         if (message.includes(key)) {
-          if (!keywordsFound.includes(key)) {
-            keywordsFound.push(key);
+          matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
+          if (BANK[key].isHelp) {
+            hasHelp = true;
+            helpId = BANK[key].rowId;
           } else {
-            continue;
-          }
-          if (matchedIds.includes(BANK[key].rowId)) continue;
-          matchedIds.push(BANK[key].rowId);
-          for (let response of BANK[key].messages) {
-            messages.push(response);
+            hasNonHelp = true;
           }
         }
       }
 
-      if (messages.length > 0) {
-        await delay(messages[0].replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
+      if (hasHelp && hasNonHelp) {
+        matchedMessageArrays[helpId].delete();
       }
 
-      var names = {};
-      for (let i=0; i<messages.length; i++) {
-        var text = messages[i];
-        var name = "";
+      const matchedIds = Object.keys(matchedMessageArrays);
+      if (matchedIds.length > 0) {
+        const firstMessage = matchedMessageArrays[matchedIds[0]][0];
+        await delay(firstMessage.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
+      }
 
-        if (text.includes(": ")) {
-          const a = text.split(": ");
-          name = a[0];
-          text = a[1];
-        }
+      for (let i=0; i<matchedIds.length; i++) {
+        currentUserColor++;
+        if (currentUserColor >= userColors.length) currentUserColor = 0;
+        const color = userColors[currentUserColor];
 
-        if (!names[name]) {
-          names[name] = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
-        }
+        const arr = matchedMessageArrays[matchedIds[i]];
 
-        new Message("left", text, null, names[name]);
-        if (i<messages.length-1) {
-          await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
+        for (let j=0; j<arr.length; j++) {
+          var text = arr[j];
+          var name = "";
+          if (text.includes(": ")) {
+            const a = text.split(": ");
+            name = a[0];
+            text = a[1];
+          }
+          new Message("left", text, null, color, name);
+          if (j<arr.length-1 || i<matchedIds.length-1) {
+            await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
+          }
         }
       }
 
@@ -400,7 +415,7 @@
     }
 
     class Message {
-      constructor(position, text, type, iconColor) {
+      constructor(position, text, type, iconColor, name) {
         var element = document.createElement("div");
         element.classList.add("response");
         if (type) element.classList.add(type);
@@ -409,10 +424,11 @@
         var icon = document.createElement("div");
         icon.classList.add("icon");
         element.classList.add("first");
-        if (iconColor) {
-          icon.style.background = iconColor;
-          const prevMessageColor = main.firstElementChild.querySelector(".icon").style.background;
-          if (prevMessageColor == icon.style.background) {
+        if (iconColor) icon.style.background = iconColor;
+        if (name) {
+          element.name = name;
+          const prevElementName = main.firstElementChild.name;
+          if (prevElementName == name) {
             icon.style.background = "transparent";
             element.classList.remove("first");
           }
@@ -455,7 +471,7 @@
       fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/history/?key="+API_KEY)
       .then((response) => response.json())
       .then((data) => {
-        if (chatOpen) setTimeout(read_data, 2000);
+        if (chatOpen || easyMode) setTimeout(read_data, 2000);
 
         if (input.disabled) return;
 
