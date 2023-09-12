@@ -305,6 +305,7 @@
     const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
     var BANK = {};
     var USERNAMES = {};
+    const HELP_ID = 2;
 
     function load_bank(onload) {
       function SheetArrayToObject(array) {
@@ -325,7 +326,7 @@
               messages: array[row][1].split("\n"),
               rowId: row,
               color: array[row].length <= 2 ? true : array[row][2],
-              isHelp: row==2
+              isHelp: row==HELP_ID
             };
           }
         }
@@ -412,7 +413,6 @@
 
       var messages = [];
       var hasHelp = false;
-      var helpId = null;
       var hasNonHelp = false;
 
       var matchedMessageArrays = {};
@@ -423,7 +423,6 @@
           matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
           if (BANK[key].isHelp) {
             hasHelp = true;
-            helpId = BANK[key].rowId;
           } else {
             hasNonHelp = true;
           }
@@ -431,7 +430,7 @@
       }
 
       if (hasHelp && hasNonHelp) {
-        matchedMessageArrays[helpId].delete();
+        delete matchedMessageArrays[HELP_ID];
       }
 
       if (!chatOpen) return;
