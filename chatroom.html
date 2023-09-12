@@ -319,7 +319,7 @@
           if (array[row].length==1) continue;
 
           for (let inputKey of inputArray) {
-            output[inputKey] = {
+            output[inputKey.replaceAll(" ","")] = {
               messages: array[row][1].split("\n"),
               rowId: row,
               color: array[row].length <= 2 ? true : array[row][2],
@@ -401,6 +401,8 @@
     }
 
     async function playResponses(message) {
+      message = message.replaceAll(" ","");
+
       input.blur();
       input.disabled = true;
       input.placeholder = "...";
