@@ -15,7 +15,7 @@
       body, html {
         margin: 0;
         overflow: hidden;
-        font-size: 30px;
+        font-size: 25px;
         font-family: 'Spoqa Han Sans', sans-serif;
         /* font-smooth: never;
         -webkit-font-smoothing: none;
@@ -43,6 +43,9 @@
         padding: .5em;
         box-sizing: border-box;
         background: white;
+
+        border-top-left-radius: 2rem;
+        border-top-right-radius: 2rem;
       }
       a {
         color: var(--red);
@@ -56,19 +59,15 @@
         animation: popup 400ms;
         transform-origin: left;
         display: flex;
-        gap: .25rem;
         position: relative;
       }
-      .response.first::before {
+      .response.left.first::before {
         content: attr(data-name);
         position: absolute;
         top: 0;
         left: 2rem;
         font-size: 24px;
         white-space: nowrap;
-      }
-      .response.first.right::before {
-        display: none;
       }
       @keyframes popup {
         0% {
@@ -93,14 +92,52 @@
         border-radius: 50%;
         background: lightgray;
         aspect-ratio: 1;
+        align-self: end;
+        translate: 0 50%;
+
+        opacity: 0;
+      }
+      .response.last .icon {
+        opacity: 1;
+      }
+      .response.left:first-child {
+        padding-bottom: .75rem;
       }
       .response .content {
         padding: .5em;
         background: lightgray;
         border-radius: 1em;
+        margin-left: .25rem;
+        margin-right: .25rem;
+      }
+      .response.left.last .content {
+        border-bottom-left-radius: 0;
+      }
+      .response.left.first .content {
+        margin-top: 1.5rem;
+      }
+      .timestamp {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        font-size: .7em;
+        translate: 100% 0;
+        white-space: nowrap;
+        width: max-content;
+      }
+      .response.right .timestamp {
+        left: 0;
+        translate: -100% 0;
       }
       .like {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        translate: 0 -50%;
         opacity: 0;
+      }
+      .response.right .like {
+        left: 0;
       }
       .response:hover .like {
         opacity: .5;
@@ -113,27 +150,20 @@
         background: transparent;
       }
 
-      .response.first .content, .response.first .like {
-        margin-top: 1.5rem;
-      }
-      .response.first.right .content, .response.right .like {
-        margin-top: 0;
-      }
-
-      /* .response.left.first .content {
-        border-top-left-radius: 0;
-      }
-      .response.right.first .content {
-        border-top-right-radius: 0;
-      } */
-
       .response.right {
         align-self: end;
         transform-origin: right;
+        flex-direction: row-reverse;
       }
-      .response.right .content, .response.player .content {
+      .response.right .icon {
+        display: none;
+      }
+      .response.right .content {
         background: var(--red);
         color: white;
+      }
+      .response.right.last {
+        border-bottom-right-radius: 0;
       }
       .response.right a, .response.player a {
         background: white;
@@ -150,41 +180,49 @@
 
       .response.date {
         font-size: .8em;
-        color: white;
-        opacity: .8;
         align-self: center;
         animation: none;
-        color: black;
+        color: white;
       }
-      .response.date .icon, .response.date .like {
+      .response.date .content {
+        background: gray;
+      }
+      .response.date .icon, .response.date .like, .response.date .timestamp {
         display: none;
       }
 
-      #inputContainer {
-        width: calc(100vw - .5em);
-        height: 2rem;
+      #input-container {
+        background: white;
+        border-top: 1px solid lightgray;
+        padding: .5rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+      #input-wrapper {
+        height: 2.5rem;
         display: flex;
         justify-content: space-between;
-        /* border: 1px solid black; */
-        border-radius: 1em;
-        margin: .25em;
-        background: white;
+        border-radius: 2rem;
         overflow: hidden;
         flex-shrink: 0;
+        background: lightgray;
       }
-      #inputContainer button {
+      #input-wrapper button {
         /* border: 1px solid black; */
         background: var(--red);
         color: white;
         border-radius: 50%;
-        width: var(--input-height);
-        margin: .15rem;
         aspect-ratio: 1;
+        margin-right: 1rem;
+
+        width: 1.5rem;
+        height: 1.5rem;
+        align-self: center;
       }
 
       #scroll-icon {
         position: absolute;
-        bottom: 3rem;
+        bottom: 4rem;
         left: 50%;
         translate: -50% 0;
         width: 1.5rem;
@@ -200,7 +238,7 @@
         width: 100vw;
         font-family: inherit;
         font-size: inherit;
-        padding: .5em;
+        padding: 1rem;
         margin: 0;
         outline: none;
         border: none;
@@ -212,7 +250,7 @@
       input:disabled::placeholder {
         text-align: center;
       }
-      #inputContainer:has(input:disabled) {
+      #input-wrapper:has(input:disabled) {
         background: lightgray;
       }
 
@@ -282,7 +320,6 @@
         position: absolute;
         top: .5rem;
         left: .5rem;
-        font-size: 18px;
         margin: 0;
         background-image: url("res/house.svg");
         width: 1rem;
@@ -293,7 +330,7 @@
   <body>
 
     <header>
-      <b>[17세기 소년을 죽이는 법]</b>
+      17세기 소년을 죽이는 법
       <button id="pause-button" onclick="restart()">
       </button>
     </header>
@@ -302,9 +339,11 @@
 
     </main>
 
-    <div id="inputContainer">
-      <input type="text" autofocus placeholder="키워드를 쳐보세요" />
-      <button onclick="sendMessage()">></button>
+    <div id="input-container">
+      <div id="input-wrapper">
+        <input type="text" autofocus placeholder="키워드를 쳐보세요" />
+        <button onclick="sendMessage()">></button>
+      </div>
     </div>
 
     <div id="scroll-icon">↓</div>
@@ -410,19 +449,16 @@
 
     // dom stuff
 
+    const SCROLL_BASELINE = 0;
+
     const startMenu = document.getElementById("start-menu");
     const main = document.querySelector("main");
     const input = document.querySelector("input");
-    const userColors = [
-      "#348feb",
-      "#dea937"
-    ];
     const scrollDownIcon = document.getElementById("scroll-icon");
     const modeDesc = document.getElementById("mode-desc");
-    var currentUserColor = 0;
 
     main.addEventListener("scroll", function(e) {
-      if (main.scrollTop == 0) {
+      if (main.scrollTop >= SCROLL_BASELINE) {
         scrollDownIcon.classList.add("gone");
       }
     });
@@ -438,7 +474,7 @@
       const message = input.value.trim();
       if (message == "") return;
 
-      new Message("right", message, null, null, playerUsername);
+      new Message(playerUsername, message, "right");
       if (!easyMode) write_data(message);
 
       input.value = "";
@@ -491,10 +527,6 @@
       var assignedNames = {};
 
       for (let i=0; i<matchedIds.length; i++) {
-        currentUserColor++;
-        if (currentUserColor >= userColors.length) currentUserColor = 0;
-        const color = userColors[currentUserColor];
-
         const id = matchedIds[i];
         const arr = matchedMessageArrays[id];
 
@@ -522,7 +554,7 @@
               }
             }
           }
-          new Message("left", text, null, color, assignedNames[name]);
+          new Message(assignedNames[name], text, "left");
           if (!chatOpen) return;
           if (j<arr.length-1 || i<matchedIds.length-1) {
             await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
@@ -536,7 +568,7 @@
     }
 
     class Message {
-      constructor(position, text, type, iconColor, name) {
+      constructor(name, text, position, type, time) {
         var element = document.createElement("div");
         element.classList.add("response");
         if (type) element.classList.add(type);
@@ -545,19 +577,20 @@
         var icon = document.createElement("div");
         icon.classList.add("icon");
         element.classList.add("first");
-        if (iconColor) icon.style.background = iconColor;
+        element.classList.add("last");
+        element.appendChild(icon);
         if (name) {
           element.dataset.name = name;
           const prevElementName = main.firstElementChild.dataset.name;
           if (prevElementName == name) {
-            icon.style.background = "transparent";
+            main.firstElementChild.classList.remove("last");
             element.classList.remove("first");
           }
         }
         if (position == "right" && main.firstElementChild.classList.contains("right")) {
+          main.firstElementChild.classList.remove("last");
           element.classList.remove("first");
         }
-        if (position != "right") element.appendChild(icon);
 
         var content = document.createElement("div");
         content.classList.add("content");
@@ -569,11 +602,7 @@
         like.onclick = function() {
           this.classList.toggle("checked");
         };
-        if (position == "right") {
-          element.prepend(like);
-        } else {
-          element.appendChild(like);
-        }
+        element.appendChild(like);
         this.likeElement = like;
 
         if (easyMode) {
@@ -593,13 +622,21 @@
         }
         content.innerHTML = text;
 
+        time = time ? new Date(time) : new Date();
+        var timeElement = document.createElement("div");
+        timeElement.classList.add("timestamp");
+        var hours = time.getHours();
+        var minutes = time.getMinutes();
+        timeElement.textContent = (hours >= 12 ? "오후" : "오전")+" "+(hours%12)+"시 "+minutes+"분";
+        element.appendChild(timeElement);
+
         this.element = element;
 
-        main.prepend(this.element);
-
-        if (main.scrollTop != 0) {
+        if (main.scrollTop < SCROLL_BASELINE) {
           scrollDownIcon.classList.remove("gone");
         }
+
+        main.prepend(this.element);
       }
     }
 
@@ -631,7 +668,7 @@
             )
           ) {
             loggedMessages[messageTimestamp] = messageContent;
-            new Message("left", messageContent, "player", null, messageName);
+            new Message(messageName, messageContent, "left", "player", messageTimestamp);
             playResponses(messageContent);
           }
         }
@@ -710,7 +747,7 @@
       input.focus();
 
       startTimestamp = new Date();
-      new Message("center", startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "date");
+      new Message(null, startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "date", "center");
 
       chatOpen = true;
       setTimeout(read_data, 1000);
