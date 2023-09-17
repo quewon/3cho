@@ -46,7 +46,15 @@
 
         border-top-left-radius: 2rem;
         border-top-right-radius: 2rem;
+
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
       }
+
+      main::-webkit-scrollbar {
+        display: none;
+      }
+
       a {
         color: var(--red);
         cursor: pointer;
