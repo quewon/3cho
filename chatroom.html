@@ -4,9 +4,21 @@
     <meta charset="utf-8">
     <title>채팅방</title>
     <style media="screen">
-      @import url('https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css');
-      @import url('https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css');
-.spoka * { font-family: 'Spoqa Han Sans', 'Spoqa Han Sans JP', 'Sans-serif'; }
+      @font-face {
+        font-family: "SCDream";
+        src: url("res/chatroom/font/SCDream1.otf") format("opentype");
+        font-weight: light;
+      }
+      @font-face {
+        font-family: "SCDream";
+        src: url("res/chatroom/font/SCDream3.otf") format("opentype");
+        font-weight: normal;
+      }
+      @font-face {
+        font-family: "SCDream";
+        src: url("res/chatroom/font/SCDream5.otf") format("opentype");
+        font-weight: bold;
+      }
 
       :root {
         --red: #d14141;
@@ -15,12 +27,36 @@
       body, html {
         margin: 0;
         overflow: hidden;
-        font-size: 25px;
-        font-family: 'Spoqa Han Sans', sans-serif;
-        /* font-smooth: never;
-        -webkit-font-smoothing: none;
-        -moz-osx-font-smoothing: grayscale; */
-        background: var(--red);
+        font-size: 18px;
+        font-family: 'SCDream', sans-serif;
+        font-weight: 400;
+      }
+      html {
+        background: white;
+      }
+      .background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      html .background {
+        z-index: -1;
+      }
+      html .background:nth-child(1) {
+        opacity: .9;
+        background: #ECF7FF;
+      }
+      html .background:nth-child(2) {
+        opacity: .9;
+        background: radial-gradient(rgba(225, 225, 225, 1), transparent);
+      }
+      html .background:nth-child(3) {
+        opacity: 1;
+        background: radial-gradient(rgba(255,255,255,.4), transparent);
+        border: 1px solid rgba(255,255,255,.6);
+        box-sizing: border-box;
       }
 
       body {
@@ -31,24 +67,49 @@
       }
 
       main {
-        width: 100vw;
-        flex-grow: 1;
+        width: 100%;
+        height: 100%;
         overflow-x: hidden;
         overflow-y: scroll;
 
         display: flex;
         flex-direction: column-reverse;
         align-items: baseline;
-        gap: .5em;
-        padding: .5em;
+        gap: .75em;
+        padding: 1.5em;
+        padding-top: 1em;
+        padding-bottom: 1em;
         box-sizing: border-box;
-        background: white;
-
-        border-top-left-radius: 2rem;
-        border-top-right-radius: 2rem;
 
         -ms-overflow-style: none;  /* IE and Edge */
         scrollbar-width: none;  /* Firefox */
+      }
+      .container .background {
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+      }
+      .container .background:nth-child(1) {
+        opacity: .74;
+        background: #2D4E76;
+      }
+      .container .background:nth-child(2) {
+        opacity: .4;
+        background: white;
+      }
+      .container .background:nth-child(3) {
+        background: radial-gradient(rgba(255,255,255,.4), transparent);
+        backdrop-filter: blur(40px);
+      }
+      .container {
+        width: 100vw;
+        flex-grow: 1;
+        border-top-left-radius: 2rem;
+        border-top-right-radius: 2rem;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 20px 0 rgba(0,0,0,.25);
+        display: flex;
+        flex-direction: column;
       }
 
       main::-webkit-scrollbar {
@@ -68,14 +129,20 @@
         transform-origin: left;
         display: flex;
         position: relative;
+        gap: .75em;
+        margin-top: -.25em;
+      }
+      .response.first {
+        margin-top: 0;
       }
       .response.left.first::before {
         content: attr(data-name);
         position: absolute;
         top: 0;
-        left: 2rem;
-        font-size: 24px;
+        left: 4.5em;
         white-space: nowrap;
+        font-size: .8em;
+        font-weight: medium;
       }
       @keyframes popup {
         0% {
@@ -95,13 +162,13 @@
         }
       }
       .response .icon {
-        width: 1.5em;
-        height: 1.5em;
+        width: 2rem;
+        height: 2rem;
         border-radius: 50%;
         background: lightgray;
         aspect-ratio: 1;
         align-self: end;
-        translate: 0 50%;
+        translate: 0 30%;
 
         opacity: 0;
       }
@@ -112,29 +179,36 @@
         padding-bottom: .75rem;
       }
       .response .content {
-        padding: .5em;
-        background: lightgray;
-        border-radius: 1em;
-        margin-left: .25rem;
-        margin-right: .25rem;
+        padding: 1em;
+        border-radius: 2em;
+        font-weight: 500;
+      }
+      .response.left .content {
+        background: #F6F9FC;
+        box-shadow: 2px 2px 5px 0 rgba(0,0,0,.1);
       }
       .response.left.last .content {
         border-bottom-left-radius: 0;
       }
       .response.left.first .content {
-        margin-top: 1.5rem;
+        margin-top: 1.25rem;
       }
       .timestamp {
         position: absolute;
-        right: 0;
         bottom: 0;
-        font-size: .7em;
-        translate: 100% 0;
         white-space: nowrap;
         width: max-content;
+        color: #434959;
+        font-size: .7em;
+        font-weight: 100;
+        text-shadow: 1px 1px 2px rgba(0,0,0,.25);
+      }
+      .response.left .timestamp {
+        right: -.5em;
+        translate: 100% 0;
       }
       .response.right .timestamp {
-        left: 0;
+        left: -.5em;
         translate: -100% 0;
       }
       .like {
@@ -162,15 +236,16 @@
         align-self: end;
         transform-origin: right;
         flex-direction: row-reverse;
+        color: white;
       }
       .response.right .icon {
         display: none;
       }
       .response.right .content {
-        background: var(--red);
-        color: white;
+        background: #6895F7;
+        box-shadow: -2px 2px 5px 0 rgba(0,0,0,.1);
       }
-      .response.right.last {
+      .response.right.last .content {
         border-bottom-right-radius: 0;
       }
       .response.right a, .response.player a {
@@ -186,45 +261,75 @@
         background: var(--red);
       }
 
-      .response.date {
-        font-size: .8em;
+      .response.date, .response.invite {
+        color: white;
         align-self: center;
         animation: none;
-        color: white;
+        font-size: .8em;
+      }
+      .response.date .icon,
+      .response.date .like,
+      .response.date .timestamp,
+      .response.invite .icon,
+      .response.invite .like,
+      .response.invite .timestamp
+      {
+        display: none;
       }
       .response.date .content {
-        background: gray;
+        background: rgba(0, 0, 0, .5);
       }
-      .response.date .icon, .response.date .like, .response.date .timestamp {
-        display: none;
+      .response.invite .content {
+        background: rgba(73, 73, 73, .5);
+      }
+      .response.date .content,
+      .response.invite .content {
+        padding: .75em;
+        padding-left: 2em;
+        padding-right: 2em;
+        box-shadow: none;
       }
 
       #input-container {
-        background: white;
-        border-top: 1px solid lightgray;
-        padding: .5rem;
+        width: 100%;
+        box-sizing: border-box;
+        padding: .75em;
         padding-left: 2rem;
         padding-right: 2rem;
+        position: relative;
+      }
+      #input-container::before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-image: linear-gradient(to right, #ADADAD 0%, rgba(254, 238, 238, .7) 35%, rgba(179, 179, 179, .6) 65%, rgba(255, 245, 245, .3) 100%);
+        height: 1px;
+        width: 100vw;
       }
       #input-wrapper {
-        height: 2.5rem;
         display: flex;
         justify-content: space-between;
         border-radius: 2rem;
         overflow: hidden;
         flex-shrink: 0;
-        background: lightgray;
+        background-color: #F6F9FC;
+        padding-left: 1em;
+        padding-right: 1em;
       }
       #input-wrapper button {
         /* border: 1px solid black; */
-        background: var(--red);
+        background-image: url("res/chatroom/svg/send.svg");
+        background-position: center;
+        background-size: contain;
         color: white;
         border-radius: 50%;
         aspect-ratio: 1;
-        margin-right: 1rem;
+        margin-right: 1em;
 
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2em;
+        height: 2em;
         align-self: center;
       }
 
@@ -235,18 +340,21 @@
         translate: -50% 0;
         width: 1.5rem;
         height: 1.5rem;
-        background: var(--red);
         border-radius: 50%;
         cursor: pointer;
         text-align: center;
         color: white;
+
+        background-image: url("res/chatroom/svg/new_message.svg");
+        background-position: center;
+        background-size: contain;
       }
 
       input {
         width: 100vw;
         font-family: inherit;
         font-size: inherit;
-        padding: 1rem;
+        padding: 1em;
         margin: 0;
         outline: none;
         border: none;
@@ -256,6 +364,7 @@
         background: lightgray;
       }
       input:disabled::placeholder {
+        color: #434959;
         text-align: center;
       }
       #input-wrapper:has(input:disabled) {
@@ -263,9 +372,10 @@
       }
 
       header {
-        color: white;
-        padding: .5rem;
+        padding: 1rem;
         text-align: center;
+        font-size: 24px;
+        font-weight: 100;
       }
 
       .gone {
@@ -274,13 +384,11 @@
 
       #start-menu {
         width: 100vw;
-        height: 101dvh;
-        background: var(--red);
+        height: 100dvh;
         color: white;
         position: absolute;
         top: 0;
         left: 0;
-        font-size: 18px;
       }
       #start-menu > div {
         top: 50%;
@@ -316,11 +424,11 @@
       }
       #start-menu button:active, header button:active {
         background: white;
-        color: var(--red);
+        color: black;
       }
       #start-menu button.checked {
         background: white;
-        color: var(--red);
+        color: black;
         pointer-events: none;
       }
 
@@ -337,20 +445,28 @@
   </head>
   <body>
 
+    <div class="background"></div>
+    <div class="background"></div>
+    <div class="background"></div>
+
     <header>
-      17세기 소년을 죽이는 법
+      <span class="light">17세기 소년을 죽이는 법</span>
       <button id="pause-button" onclick="restart()">
       </button>
     </header>
 
-    <main>
+    <div class="container">
+      <div class="background"></div>
+      <div class="background"></div>
+      <div class="background"></div>
+      <main>
+      </main>
 
-    </main>
-
-    <div id="input-container">
-      <div id="input-wrapper">
-        <input type="text" autofocus placeholder="키워드를 쳐보세요" />
-        <button onclick="sendMessage()">></button>
+      <div id="input-container">
+        <div id="input-wrapper">
+          <input type="text" autofocus />
+          <button onclick="sendMessage()"></button>
+        </div>
       </div>
     </div>
 
@@ -358,8 +474,6 @@
 
     <div id="start-menu">
       <div>
-        <b>[17세기 소년을 죽이는 법]</b>
-        <br><br>
         <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)" class="checked">기본 모드</button><br>
         <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
         <br><br>
@@ -368,10 +482,6 @@
         <button onclick="start()">시작</button>
       </div>
     </div>
-
-    <template id="template-텍스트">
-
-    </template>
 
   </body>
   <script defer type="text/javascript">
@@ -570,7 +680,7 @@
         }
       }
 
-      input.placeholder = "키워드를 쳐보세요";
+      input.placeholder = "키워드를 입력해주세요.";
       input.disabled = false;
       input.focus();
     }
@@ -630,7 +740,7 @@
         }
         content.innerHTML = text;
 
-        time = time ? new Date(time) : new Date();
+        time = time ? new Date(Number(time)) : new Date();
         var timeElement = document.createElement("div");
         timeElement.classList.add("timestamp");
         var hours = time.getHours();
@@ -717,7 +827,7 @@
       easyMode = false;
       input.blur();
       input.disabled = false;
-      input.placeholder = "키워드를 쳐보세요";
+      input.placeholder = "키워드를 입력해주세요.";
       scrollDownIcon.classList.add("gone");
       changeMode("normal");
       checkButton(startMenu.querySelectorAll("button")[1], startMenu.querySelectorAll("button")[0]);
