@@ -57,6 +57,7 @@
         background: radial-gradient(rgba(255,255,255,.4), transparent);
         border: 1px solid rgba(255,255,255,.6);
         box-sizing: border-box;
+        backdrop-filter: blur(10px);
       }
 
       body {
@@ -75,7 +76,7 @@
         display: flex;
         flex-direction: column-reverse;
         align-items: baseline;
-        gap: .75em;
+        gap: .85em;
         padding: 1.5em;
         padding-top: 1em;
         padding-bottom: 1em;
@@ -98,13 +99,13 @@
       }
       .container .background:nth-child(3) {
         background: radial-gradient(rgba(255,255,255,.4), transparent);
-        backdrop-filter: blur(40px);
+        backdrop-filter: blur(10px);
       }
       .container {
         width: 100vw;
         flex-grow: 1;
-        border-top-left-radius: 2rem;
-        border-top-right-radius: 2rem;
+        border-top-left-radius: 4em;
+        border-top-right-radius: 4em;
         overflow: hidden;
         position: relative;
         box-shadow: 0 10px 20px 0 rgba(0,0,0,.25);
@@ -175,8 +176,11 @@
       .response.last .icon {
         opacity: 1;
       }
-      .response.left:first-child {
+      .response:first-child {
         padding-bottom: .75rem;
+      }
+      .response:first-child .like {
+        translate: 0 -.375em;
       }
       .response .content {
         padding: 1em;
@@ -185,7 +189,7 @@
       }
       .response.left .content {
         background: #F6F9FC;
-        box-shadow: 2px 2px 5px 0 rgba(0,0,0,.1);
+        box-shadow: 2px 2px 3px 0 rgba(0,0,0,.1);
       }
       .response.left.last .content {
         border-bottom-left-radius: 0;
@@ -194,42 +198,108 @@
         margin-top: 1.25rem;
       }
       .timestamp {
-        position: absolute;
         bottom: 0;
         white-space: nowrap;
-        width: max-content;
         color: #434959;
-        font-size: .7em;
+        font-size: .6em;
         font-weight: 100;
         text-shadow: 1px 1px 2px rgba(0,0,0,.25);
+        align-self: end;
       }
       .response.left .timestamp {
-        right: -.5em;
-        translate: 100% 0;
+        margin-left: -.75em;
       }
       .response.right .timestamp {
-        left: -.5em;
-        translate: -100% 0;
+        margin-right: -.75em;
       }
       .like {
+        width: 1.25em;
+        height: 1.25em;
+
         position: absolute;
-        right: 0;
+        right: 2em;
         top: 50%;
-        translate: 0 -50%;
-        opacity: 0;
       }
       .response.right .like {
-        left: 0;
+        display: none;
       }
-      .response:hover .like {
-        opacity: .5;
-      }
-      .like.checked {
-        opacity: 1 !important;
+      .like, .like:active {
+        background-image: url("res/chatroom/nonactive-h.png");
+        background-position: center;
+        background-size: contain;
+        background-repeat: no-repeat;
       }
       .like:active {
-        opacity: 1 !important;
-        background: transparent;
+        background-color: transparent;
+      }
+      .like .l1 {
+        background: radial-gradient(transparent, #FF8787);
+        border-radius: 50%;
+      }
+      .like .l2 {
+        background: #B6BFCC;
+        border-radius: 50%;
+      }
+      .like .l3 {
+        object-fit: contain;
+      }
+
+      .like * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: inherit;
+        height: inherit;
+        scale: 0 0;
+      }
+      .like.checked .l1 {
+        animation: like1 .4s ease-in-out;
+        scale: 1.5 1.5;
+        opacity: 0;
+      }
+      .like.checked .l2 {
+        animation: like2 .4s ease-in-out;
+        scale: 1.5 1.5;
+        opacity: 0;
+      }
+      .like.checked .l3 {
+        animation: like3 .4s ease-out;
+        scale: 1 1;
+      }
+      @keyframes like1 {
+        0% {
+          scale: 0 0;
+          opacity: 1;
+        }
+        50% {
+          scale: 1.5 1.5;
+          opacity: 1;
+        }
+        100% {
+          scale: 1.5 1.5;
+          opacity: 1;
+        }
+      }
+      @keyframes like2 {
+        50% {
+          scale: 0 0;
+          opacity: 1;
+        }
+        100% {
+          scale: 1.5 1.5;
+          opacity: 1;
+        }
+      }
+      @keyframes like3 {
+        0% {
+          scale: 0 0;
+        }
+        50% {
+          scale: 1.1 1.1;
+        }
+        100% {
+          scale: 1 1;
+        }
       }
 
       .response.right {
@@ -243,7 +313,7 @@
       }
       .response.right .content {
         background: #6895F7;
-        box-shadow: -2px 2px 5px 0 rgba(0,0,0,.1);
+        box-shadow: -2px 2px 3px 0 rgba(0,0,0,.1);
       }
       .response.right.last .content {
         border-bottom-right-radius: 0;
@@ -261,29 +331,33 @@
         background: var(--red);
       }
 
-      .response.date, .response.invite {
+      .response.center {
         color: white;
         align-self: center;
         animation: none;
         font-size: .8em;
+        margin-top: -.4em;
       }
-      .response.date .icon,
-      .response.date .like,
-      .response.date .timestamp,
-      .response.invite .icon,
-      .response.invite .like,
-      .response.invite .timestamp
+      .response.first.center {
+        margin-top: 0;
+      }
+      .response.center .icon,
+      .response.center .like,
+      .response.center .timestamp
       {
         display: none;
       }
       .response.date .content {
         background: rgba(0, 0, 0, .5);
       }
-      .response.invite .content {
+      .response.invite .content, .response.exit .content {
         background: rgba(73, 73, 73, .5);
+        font-weight: 400;
       }
-      .response.date .content,
-      .response.invite .content {
+      .response.invite .content u, .response.exit .content u {
+        font-weight: 500;
+      }
+      .response.center .content {
         padding: .75em;
         padding-left: 2em;
         padding-right: 2em;
@@ -302,7 +376,7 @@
         content: "";
         display: block;
         position: absolute;
-        top: 0;
+        top: -1px;
         left: 0;
         background-image: linear-gradient(to right, #ADADAD 0%, rgba(254, 238, 238, .7) 35%, rgba(179, 179, 179, .6) 65%, rgba(255, 245, 245, .3) 100%);
         height: 1px;
@@ -335,11 +409,11 @@
 
       #scroll-icon {
         position: absolute;
-        bottom: 4rem;
+        bottom: 6rem;
         left: 50%;
         translate: -50% 0;
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
         border-radius: 50%;
         cursor: pointer;
         text-align: center;
@@ -353,7 +427,7 @@
       input {
         width: 100vw;
         font-family: inherit;
-        font-size: inherit;
+        font-size: 1.1rem;
         padding: 1em;
         margin: 0;
         outline: none;
@@ -372,10 +446,14 @@
       }
 
       header {
-        padding: 1rem;
+        padding: 1.2rem;
         text-align: center;
         font-size: 24px;
         font-weight: 100;
+      }
+      .light {
+        display: block;
+        translate: 0 .1rem;
       }
 
       .gone {
@@ -470,7 +548,7 @@
       </div>
     </div>
 
-    <div id="scroll-icon">↓</div>
+    <div id="scroll-icon"></div>
 
     <div id="start-menu">
       <div>
@@ -601,17 +679,10 @@
       await playResponses(message);
     }
 
-    async function playResponses(message) {
+    function getMatchedMessageArrays(message) {
       message = message.replaceAll(" ","");
-
-      input.blur();
-      input.disabled = true;
-      input.placeholder = "...";
-
-      var messages = [];
       var hasHelp = false;
       var hasNonHelp = false;
-
       var matchedMessageArrays = {};
 
       //TODO: make messages appear in order that keywords are typed
@@ -634,7 +705,20 @@
         delete matchedMessageArrays[HELP_ID];
       }
 
+      return matchedMessageArrays;
+    }
+
+    async function playResponses(message) {
+      input.blur();
+      input.disabled = true;
+      input.placeholder = "...";
+
+      message = message.replaceAll(" ","");
+      var matchedMessageArrays = getMatchedMessageArrays(message);
+
       if (!chatOpen) return;
+
+      var messages = [];
 
       const matchedIds = Object.keys(matchedMessageArrays);
       if (matchedIds.length > 0) {
@@ -700,14 +784,19 @@
         if (name) {
           element.dataset.name = name;
           const prevElementName = main.firstElementChild.dataset.name;
-          if (prevElementName == name) {
+          if (main.firstElementChild.classList.contains("player") && prevElementName == name) {
             main.firstElementChild.classList.remove("last");
             element.classList.remove("first");
           }
         }
-        if (position == "right" && main.firstElementChild.classList.contains("right")) {
-          main.firstElementChild.classList.remove("last");
-          element.classList.remove("first");
+        if (main.firstElementChild) {
+          if (position == "right" && main.firstElementChild.classList.contains("right")) {
+            main.firstElementChild.classList.remove("last");
+            element.classList.remove("first");
+          } else if (position == "center" && main.firstElementChild.classList.contains("center")) {
+            main.firstElementChild.classList.remove("last");
+            element.classList.remove("first");
+          }
         }
 
         var content = document.createElement("div");
@@ -715,7 +804,17 @@
         element.appendChild(content);
 
         var like = document.createElement("button");
-        like.textContent = "❤️";
+        const l1 = document.createElement("div");
+        l1.className = "l1";
+        const l2 = document.createElement("div");
+        l2.className = "l2";
+        const l3 = document.createElement("img");
+        l3.className = "l3";
+        l3.src = "res/chatroom/active-h.png";
+        like.appendChild(l1);
+        like.appendChild(l2);
+        like.appendChild(l3);
+
         like.classList.add("like");
         like.onclick = function() {
           this.classList.toggle("checked");
@@ -759,8 +858,6 @@
     }
 
     function read_data() {
-      const timestamp = new Date().getTime();
-
       fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/history/?key="+API_KEY)
       .then((response) => response.json())
       .then((data) => {
@@ -770,14 +867,21 @@
           setTimeout(read_data, 2000);
         }
 
-        if (input.disabled) return;
+        // if (input.disabled) return;
 
         if (!data.values) return;
 
         for (let i=1; i<data.values.length; i++) {
+          const messageName = data.values[i][2];
           const messageTimestamp = data.values[i][0];
           const messageContent = data.values[i][1];
-          const messageName = data.values[i][2];
+          const messageType = data.values[i][3];
+
+          if (messageType == "invite") {
+            if (messageContent.includes(playerUsername)) continue;
+          } else if (input.disabled) {
+            continue;
+          }
 
           if (
             messageTimestamp >= startTimestamp &&
@@ -786,23 +890,24 @@
             )
           ) {
             loggedMessages[messageTimestamp] = messageContent;
-            new Message(messageName, messageContent, "left", "player", messageTimestamp);
-            playResponses(messageContent);
+            new Message(messageName, messageContent, messageType == "player" ? "left" : "center", messageType, messageTimestamp);
+            if (messageType == "player") playResponses(messageContent);
           }
         }
       });
     }
 
-    function write_data(text) {
+    function write_data(text, type) {
       const timestamp = new Date().getTime();
       const data = new FormData();
       data.set("timestamp", timestamp);
       data.set("text", text);
       data.set("name", playerUsername);
+      data.set("type", type || "player");
 
       loggedMessages[timestamp] = text;
 
-      fetch("https://script.google.com/macros/s/AKfycbxvLunYS6QD5hr4HwbVlD_fLsbhbSUjef6_wSLrv1NNRfJbFO5WTnIF18m3p0_aFQlH/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbxxFgNx48eXLLX3b7bZfVMd8_Pk8kDY7UZOxqcMzrM7xm5n_JG93znRMUYeDYveHPX4/exec", {
         method: "POST",
         body: data
       })
@@ -822,6 +927,7 @@
     var readResponses;
 
     function restart() {
+      window.onbeforeunload();
       loggedMessages = {}
       chatOpen = false;
       easyMode = false;
@@ -834,6 +940,12 @@
       startMenu.classList.remove("gone");
       playerUsername = generateName();
       readResponses = [];
+    }
+
+    window.onbeforeunload = function() {
+      if (playerUsername && chatOpen) {
+        write_data("<u>"+playerUsername+"</u>님이 나갔습니다.", "exit");
+      }
     }
 
     function generateName() {
@@ -865,7 +977,10 @@
       input.focus();
 
       startTimestamp = new Date();
-      new Message(null, startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "date", "center");
+      new Message(null, startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "center", "date");
+      const inviteText = "<u>3초'</u>님이 <u>"+playerUsername+"</u>님을 초대했습니다.";
+      new Message(null, inviteText, "center", "invite");
+      write_data(inviteText, "invite");
 
       chatOpen = true;
       setTimeout(read_data, 1000);
