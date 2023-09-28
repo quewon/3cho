@@ -4,22 +4,6 @@
     <meta charset="utf-8">
     <title>채팅방</title>
     <style media="screen">
-      /* @font-face {
-        font-family: "SCDream";
-        src: url("res/chatroom/font/SCDream1.otf") format("opentype");
-        font-weight: light;
-      }
-      @font-face {
-        font-family: "SCDream";
-        src: url("res/chatroom/font/SCDream3.otf") format("opentype");
-        font-weight: normal;
-      }
-      @font-face {
-        font-family: "SCDream";
-        src: url("res/chatroom/font/SCDream5.otf") format("opentype");
-        font-weight: bold;
-      } */
-
       @font-face {
         font-family: 'NanumSquareNeo-Variable';
         src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/NanumSquareNeo-Variable.woff2') format('woff2');
@@ -192,6 +176,10 @@
         padding: 1em;
         border-radius: 2em;
         font-weight: 400;
+        max-width: calc(50vw - 7rem);
+        line-height: 1.5em;
+        padding-top: .75em;
+        padding-bottom: .75em;
       }
       .response.left .content {
         background: #F6F9FC;
@@ -788,10 +776,11 @@
         element.classList.add("first");
         element.classList.add("last");
         element.appendChild(icon);
+
         if (name) {
           element.dataset.name = name;
           const prevElementName = main.firstElementChild.dataset.name;
-          if (main.firstElementChild.classList.contains("player") && prevElementName == name) {
+          if (prevElementName == name) {
             main.firstElementChild.classList.remove("last");
             element.classList.remove("first");
           }
