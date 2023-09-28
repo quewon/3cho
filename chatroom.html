@@ -514,6 +514,34 @@
         width: 1rem;
         height: 1rem;
       }
+
+      .absolute {
+        position: absolute;
+        translate: -50% -50%;
+        white-space: pre;
+      }
+      .absolute * {
+        transition: color 500ms, box-shadow 500ms;
+      }
+      .absolute.red * {
+        background: red !important;
+        color: red;
+        box-shadow: none !important;
+      }
+
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        pointer-events: none;
+        background: transparent;
+        transition: background 5s;
+      }
+      #overlay.red {
+        background: red;
+      }
     </style>
   </head>
   <body>
@@ -556,6 +584,8 @@
       </div>
     </div>
 
+    <div id="overlay"></div>
+
   </body>
   <script defer type="text/javascript">
     // data
@@ -566,6 +596,7 @@
     var USERNAMES = {};
 
     var MESSAGE_SOUND = new Audio("res/chatroom/message.mp3");
+    var ERROR_SOUND = new Audio("res/chatroom/error.mp3");
 
     function load_bank(onload) {
       function SheetArrayToObject(array) {
@@ -695,9 +726,91 @@
     }
 
     async function playEffect(keyword) {
-      console.log(BANK[keyword].effect);
+      console.log("effect: "+BANK[keyword].effect);
 
-      restoreInputControl();
+      switch (BANK[keyword].effect) {
+        case "error":
+          ERROR_SOUND.currentTime = 0;
+          ERROR_SOUND.play();
+          restart();
+          break;
+
+        case "die":
+          for (let i=0; i<3; i++) {
+            var randomMessage = BANK[keyword].messages[Math.random() * BANK[keyword].messages.length | 0].split(": ")[1];
+            new Message(generateName(), randomMessage, "left");
+            await delay(randomMessage.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
+          }
+
+          for (let i=0; i<BANK[keyword].messages.length-3; i++) {
+            setTimeout(function() {
+              var randomMessage = BANK["die"].messages[Math.random() * BANK["die"].messages.length | 0].split(": ")[1];
+              new Message(generateName(), randomMessage, "left");
+            }, i*210);
+          }
+
+          const totalMessages = 300;
+
+          document.getElementById("overlay").className = "red";
+
+          for (let speed=0; speed<totalMessages; speed++) {
+            var randomMessage = BANK[keyword].messages[Math.random() * BANK[keyword].messages.length | 0].split(": ")[1];
+            const element = createAbsoluteMessage(randomMessage);
+            setTimeout(function() {
+              this.classList.add("red");
+            }.bind(element), 500);
+            if (speed%2==0) {
+              var sound = new Audio("res/chatroom/message.mp3");
+              sound.play();
+            }
+            await delay(Math.max(0, lerp(30, -30, speed/totalMessages)));
+          }
+
+          await delay(500);
+
+          MESSAGE_SOUND.currentTime = 0;
+          MESSAGE_SOUND.play();
+          const element = createAbsoluteMessage("죽어");
+          element.style.left = "50%";
+          element.style.top = "50%";
+          setTimeout(function() {
+            this.classList.add("red");
+          }.bind(element), 2000);
+
+          setTimeout(function() {
+            document.getElementById("overlay").className = "";
+            const redResponses = document.body.querySelectorAll(".response.red");
+            for (let i=redResponses.length-1; i>=0; i--) {
+              redResponses[i].remove();
+            }
+            restoreInputControl();
+          }, 3000);
+          break;
+      }
+    }
+
+    function lerp(a, b, t) {
+      return a * (1-t) + b * t;
+    }
+    function smootherstep(x) {
+      return x * x * x * (3 * x * (2 * x - 5) + 10);
+    }
+
+    function createAbsoluteMessage(content) {
+      const response = document.createElement("div");
+      response.className = "response left last absolute";
+
+      const contentElement = document.createElement("div");
+      contentElement.className = "content";
+      contentElement.textContent = content;
+      response.appendChild(contentElement);
+
+      response.style.left = (Math.random() * 100)+"%";
+      response.style.top = (Math.random() * 100)+"%";
+
+      document.body.appendChild(response);
+
+      return response;
     }
 
     async function playResponses(message) {
@@ -716,7 +829,7 @@
           }
 
           if (BANK[key].effect) {
-            playEffect(key);
+            await playEffect(key);
             return;
           }
 
@@ -958,6 +1071,7 @@
 
     function restart() {
       window.onbeforeunload();
+      document.getElementById("overlay").className = "";
       loggedMessages = {}
       chatOpen = false;
       easyMode = false;
