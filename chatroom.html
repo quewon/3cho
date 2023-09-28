@@ -564,7 +564,6 @@
     const SHEET_ID = "1bIV3VUzn55cLkD-dxWoOkbt4NrA0V4OdYP_TGijlL2I";
     var BANK = {};
     var USERNAMES = {};
-    const HELP_ID = 2;
 
     var MESSAGE_SOUND = new Audio("res/chatroom/message.mp3");
 
@@ -589,8 +588,8 @@
               messages: array[row][1].split("\n"),
               rowId: row,
               color: array[row].length <= 2 ? true : array[row][2] != "FALSE",
-              isHelp: row==HELP_ID,
               showOnce: array[row].length <= 3 ? false : array[row][3] == "TRUE",
+              effect: array[row].length <= 4 ? null : array[row][4]
             };
           }
         }
@@ -695,10 +694,18 @@
       await playResponses(message);
     }
 
-    function getMatchedMessageArrays(message) {
-      message = message.replaceAll(" ","");
-      var hasHelp = false;
-      var hasNonHelp = false;
+    async function playEffect(keyword) {
+      console.log(BANK[keyword].effect);
+
+      restoreInputControl();
+    }
+
+    async function playResponses(message) {
+      input.blur();
+      input.disabled = true;
+      input.placeholder = "...";
+
+      message = message.toLowerCase().replaceAll(" ","");
       var matchedMessageArrays = {};
 
       //TODO: make messages appear in order that keywords are typed
@@ -708,29 +715,14 @@
             continue;
           }
 
-          matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
-          if (BANK[key].isHelp) {
-            hasHelp = true;
-          } else {
-            hasNonHelp = true;
+          if (BANK[key].effect) {
+            playEffect(key);
+            return;
           }
+
+          matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
         }
       }
-
-      if (hasHelp && hasNonHelp) {
-        delete matchedMessageArrays[HELP_ID];
-      }
-
-      return matchedMessageArrays;
-    }
-
-    async function playResponses(message) {
-      input.blur();
-      input.disabled = true;
-      input.placeholder = "...";
-
-      message = message.toLowerCase().replaceAll(" ","");
-      var matchedMessageArrays = getMatchedMessageArrays(message);
 
       if (!chatOpen) return;
 
@@ -758,7 +750,10 @@
             name = a[0];
             text = a[1];
           }
-          if (!assignedNames[name]) {
+
+          var nameIsNaN = isNaN(Number(name));
+
+          if (!nameIsNaN && !assignedNames[name]) {
             var nameExists = true;
             while (nameExists) {
               assignedNames[name] = generateName();
@@ -772,7 +767,7 @@
               }
             }
           }
-          new Message(assignedNames[name], text, "left");
+          new Message(nameIsNaN ? name : assignedNames[name], text, "left");
           if (!chatOpen) return;
           if (j<arr.length-1 || i<matchedIds.length-1) {
             await delay(text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
@@ -780,6 +775,10 @@
         }
       }
 
+      restoreInputControl();
+    }
+
+    function restoreInputControl() {
       input.placeholder = "키워드를 입력해주세요.";
       input.disabled = false;
       input.focus();
@@ -962,9 +961,8 @@
       loggedMessages = {}
       chatOpen = false;
       easyMode = false;
+      restoreInputControl();
       input.blur();
-      input.disabled = false;
-      input.placeholder = "키워드를 입력해주세요.";
       scrollDownIcon.classList.add("gone");
       changeMode("normal");
       checkButton(startMenu.querySelectorAll("button")[1], startMenu.querySelectorAll("button")[0]);
