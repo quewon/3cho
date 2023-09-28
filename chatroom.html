@@ -599,7 +599,7 @@
           for (let key of keywords) {
             if (key == keywords[i]) continue;
             if (keywords[i].includes(key)) {
-              console.log(key+" is in "+keywords[i]+" therefore delete "+keywords[i]);
+              // console.log(key+" is in "+keywords[i]+" therefore delete "+keywords[i]);
               unnecessaryKey = true;
               break;
             }
@@ -838,6 +838,8 @@
         this.likeElement = like;
 
         if (easyMode) {
+          var keywordElements = document.getElementsByClassName("keyword");
+
           for (let key in BANK) {
             if (!BANK[key].color) continue;
 
@@ -845,11 +847,17 @@
             for (let id of readResponses) {
               if (BANK[key].rowId == Number(id)) {
                 keywordFound = true;
+
+                for (let el of keywordElements) {
+                  if (!el.classList.contains("found") && el.textContent == key) {
+                    el.classList.add("found");
+                  }
+                }
                 break;
               }
             }
 
-            text = text.replaceAll(key, "<a class='"+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
+            text = text.replaceAll(key, "<a class='keyword "+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
           }
         }
 
@@ -928,7 +936,7 @@
         body: data
       })
       .then(function(e) {
-        console.log("success")
+        console.log("message written")
       })
       .catch(function(e) {
         console.log("** error **\n"+e);
