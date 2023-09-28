@@ -8,9 +8,15 @@
         font-family: 'NanumSquareNeo-Variable';
         src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/NanumSquareNeo-Variable.woff2') format('woff2');
       }
+      @font-face {
+         font-family: 'DungGeunMo';
+         src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
+         font-weight: normal;
+         font-style: normal;
+      }
 
       :root {
-        --red: #d14141;
+        --red: #FFA0A0;
       }
 
       body, html {
@@ -312,15 +318,15 @@
       .response.right.last .content {
         border-bottom-right-radius: 0;
       }
-      .response.right a, .response.player a {
+      /* .response.right a, .response.player a {
         background: white;
-      }
-      .response.right:has(a) .content, .response.player:has(a) .content {
+      } */
+      /* .response.right:has(a) .content, .response.player:has(a) .content {
         background: white;
         border: 1px solid var(--red);
         box-sizing: border-box;
         color: black;
-      }
+      } */
       .response.player .icon {
         background: var(--red);
       }
@@ -537,10 +543,37 @@
         height: 100dvh;
         pointer-events: none;
         background: transparent;
-        transition: background 5s;
+        white-space: pre;
+        box-sizing: border-box;
+        font-family: 'DungGeunMo', monospace;
+        color: white;
+        font-smooth: never;
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeSpeed;
+        font-size: 1.5rem;
+        font-kerning: none;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Edge, Opera and Firefox */
       }
       #overlay.red {
         background: red;
+        animation: fade-in 5s;
+      }
+      @keyframes fade-in {
+        0% { opacity: 0 }
+        0% { opacity: 1 }
+      }
+      #overlay.error {
+        padding-top: 2em;
+        background: #0700AA;
+        pointer-events: auto;
+        cursor: none;
       }
     </style>
   </head>
@@ -597,6 +630,8 @@
 
     var MESSAGE_SOUND = new Audio("res/chatroom/message.mp3");
     var ERROR_SOUND = new Audio("res/chatroom/error.mp3");
+
+    var overlayElement = document.getElementById("overlay");
 
     function load_bank(onload) {
       function SheetArrayToObject(array) {
@@ -732,7 +767,49 @@
         case "error":
           ERROR_SOUND.currentTime = 0;
           ERROR_SOUND.play();
-          restart();
+
+          await delay(1000);
+
+          overlayElement.className = "error";
+          overlayElement.textContent = `A problem has been detected and windows has been shut down to prevent damage
+to your computer.
+
+TRAP_CAUSE_UNKNOWN
+
+If this is the first time you've seen this stop error screen,
+restart your computer. If this screen appears again, fol1ow
+these stens:
+check to make sure any new hardware or software is properly installed.
+If this is a new installation, ask your hardware or software manufacturer
+for any windows updates you might need.
+
+If problems continue, disable or remove any newly installed hardware
+or software. Disable BIOS memory options such as caching or shadowing.
+If you need to use safe Mode to remove or disable components, restart
+your computer, press spacebar to select advanced Startup options, and then
+select safe Mode.
+
+Technical information:
+
+*** STOP: 0x00000012 (0x00000002,^`;
+
+          var clicksAndTaps = 0;
+          document.onkeyup = function() {
+            clicksAndTaps++;
+            if (clicksAndTaps >= 5) {
+              document.onkeyup = null;
+              document.onclick = null;
+              restart();
+            }
+          }
+          document.onclick = function() {
+            clicksAndTaps++;
+            if (clicksAndTaps >= 5) {
+              document.onkeyup = null;
+              document.onclick = null;
+              restart();
+            }
+          }
           break;
 
         case "die":
@@ -751,7 +828,7 @@
 
           const totalMessages = 300;
 
-          document.getElementById("overlay").className = "red";
+          overlayElement.className = "red";
 
           for (let speed=0; speed<totalMessages; speed++) {
             var randomMessage = BANK[keyword].messages[Math.random() * BANK[keyword].messages.length | 0].split(": ")[1];
@@ -778,7 +855,7 @@
           }.bind(element), 2000);
 
           setTimeout(function() {
-            document.getElementById("overlay").className = "";
+            overlayElement.className = "";
             const redResponses = document.body.querySelectorAll(".response.red");
             for (let i=redResponses.length-1; i>=0; i--) {
               redResponses[i].remove();
@@ -1071,7 +1148,8 @@
 
     function restart() {
       window.onbeforeunload();
-      document.getElementById("overlay").className = "";
+      overlayElement.className = "";
+      overlayElement.textContent = "";
       loggedMessages = {}
       chatOpen = false;
       easyMode = false;
