@@ -566,6 +566,8 @@
     var USERNAMES = {};
     const HELP_ID = 2;
 
+    var MESSAGE_SOUND = new Audio("res/chatroom/message.mp3");
+
     function load_bank(onload) {
       function SheetArrayToObject(array) {
         if (array == undefined) return undefined;
@@ -878,6 +880,11 @@
         }
 
         main.prepend(this.element);
+
+        if (position != "center") {
+          MESSAGE_SOUND.currentTime = 0;
+          MESSAGE_SOUND.play();
+        }
       }
     }
 
