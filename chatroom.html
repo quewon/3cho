@@ -581,7 +581,7 @@
           if (array[row].length==1) continue;
 
           for (let inputKey of inputArray) {
-            output[inputKey.replaceAll(" ","")] = {
+            output[inputKey.toLowerCase().replaceAll(" ","")] = {
               messages: array[row][1].split("\n"),
               rowId: row,
               color: array[row].length <= 2 ? true : array[row][2] == "TRUE",
@@ -708,7 +708,7 @@
       input.disabled = true;
       input.placeholder = "...";
 
-      message = message.replaceAll(" ","");
+      message = message.toLowerCase().replaceAll(" ","");
       var matchedMessageArrays = getMatchedMessageArrays(message);
 
       if (!chatOpen) return;
