@@ -167,6 +167,7 @@
       .response .icon {
         width: 2rem;
         height: 2rem;
+        max-height: unset;
         border-radius: 50%;
         background: lightgray;
         aspect-ratio: 1;
@@ -230,7 +231,7 @@
         display: none;
       }
       .like, .like:active {
-        background-image: url("res/chatroom/nonactive-h.png");
+        background-image: url("res/chatroom/icons/nonactive-h.png");
         background-position: center;
         background-size: contain;
         background-repeat: no-repeat;
@@ -392,7 +393,7 @@
       }
       #input-wrapper button {
         /* border: 1px solid black; */
-        background-image: url("res/chatroom/svg/send.svg");
+        background-image: url("res/chatroom/icons/send.svg");
         background-position: center;
         background-size: contain;
         color: white;
@@ -417,7 +418,7 @@
         text-align: center;
         color: white;
 
-        background-image: url("res/chatroom/svg/new_message.svg");
+        background-image: url("res/chatroom/icons/new_message.svg");
         background-position: center;
         background-size: contain;
       }
@@ -444,10 +445,18 @@
       }
 
       header {
+        position: relative;
         padding: 1.2rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
         text-align: center;
         font-size: 24px;
         font-weight: 100;
+        pointer-events: auto;
+      }
+      header button {
+        height: 1em;
+        width: 1em;
       }
       .light {
         display: block;
@@ -540,6 +549,7 @@
         white-space: pre;
         line-height: 1.5em;
         font-weight: 300;
+        overflow: hidden;
       }
 
       #start-menu button {
@@ -559,7 +569,7 @@
         transition: background 100ms;
       }
       #start-menu button:active {
-        background: white;
+        /* background: white; */
       }
       #start-menu button.checked {
         pointer-events: none;
@@ -578,20 +588,14 @@
         padding-right: 2em;
       }
 
-      #pause-button {
-        position: absolute;
-        top: .5rem;
-        left: .5rem;
-        margin: 0;
-        background-image: url("res/house.svg");
-        width: 1rem;
-        height: 1rem;
-      }
-
       .absolute {
         position: absolute;
         translate: -50% -50%;
         white-space: pre;
+      }
+      .absolute.center {
+        top: 50%;
+        left: 50%;
       }
       .absolute * {
         transition: color 500ms, box-shadow 500ms;
@@ -648,6 +652,27 @@
       #overlay.error #error-message {
         opacity: 1;
       }
+
+      .icon {
+        max-height: 1em;
+        vertical-align: middle;
+      }
+
+      .buttonbar {
+        display: flex;
+        gap: 1rem;
+        width: inherit;
+        height: inherit;
+        font-size: 1.7rem;
+      }
+      .buttonbar .grow {
+        flex-grow: 1;
+      }
+
+      header button {
+        text-align: center;
+        padding: 0;
+      }
     </style>
   </head>
   <body>
@@ -658,9 +683,24 @@
 
     <div id="game">
       <header>
-        <span class="light">17세기 소년을 죽이는 법</span>
-        <button id="pause-button" onclick="restart()">
-        </button>
+        <div class="buttonbar">
+          <button onclick="restart()">
+            <img class="icon" src="res/chatroom/icons/main.svg">
+          </button>
+          <div class="grow">
+
+          </div>
+          <button onclick="">
+            <img class="icon" src="res/chatroom/icons/search_icon.svg">
+          </button>
+          <button onclick="">
+            <img class="icon" src="res/chatroom/icons/background_icon.svg">
+          </button>
+          <button onclick="">
+            <img class="icon" src="res/chatroom/icons/help.svg">
+          </button>
+        </div>
+        <span class="absolute center light">17세기 소년을 죽이는 법</span>
       </header>
 
       <div class="container">
@@ -695,7 +735,7 @@
         <br><br>
         <div id="mode-desc"></div>
         <br>
-        <button id="start-button" onclick="start()">입장하기</button>
+        <button id="start-button" onclick="start()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></img></button>
       </div>
     </div>
 
@@ -732,8 +772,8 @@ Technical information:
     var BANK = {};
     var USERNAMES = {};
 
-    var MESSAGE_SOUND = new Audio("res/chatroom/message.mp3");
-    var ERROR_SOUND = new Audio("res/chatroom/error.mp3");
+    var MESSAGE_SOUND = new Audio("res/chatroom/sound/message.mp3");
+    var ERROR_SOUND = new Audio("res/chatroom/sound/error.mp3");
 
     var overlayElement = document.getElementById("overlay");
 
@@ -1100,7 +1140,7 @@ Technical information:
         l2.className = "l2";
         const l3 = document.createElement("img");
         l3.className = "l3";
-        l3.src = "res/chatroom/active-h.png";
+        l3.src = "res/chatroom/icons/active-h.png";
         like.appendChild(l1);
         like.appendChild(l2);
         like.appendChild(l3);
@@ -1240,8 +1280,9 @@ Technical information:
       input.blur();
       scrollDownIcon.classList.add("gone");
       changeMode();
-      startMenu.querySelectorAll("button")[1].checked = false;
-      startMenu.querySelectorAll("button")[2].checked = false;
+      startMenu.querySelectorAll("button")[0].classList.remove("checked");
+      startMenu.querySelectorAll("button")[1].classList.remove("checked");
+      modeDesc.textContent = "";
       startMenu.classList.remove("gone");
       playerUsername = generateName();
       readResponses = [];
