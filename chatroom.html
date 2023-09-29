@@ -496,12 +496,17 @@
 
       h1 {
         color: #3C5895;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
       }
       h2 {
         color: black;
-        font-size: 1.5rem;
-        font-weight: 200;
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+      }
+      h2 .kerning {
+        display: inline-block;
+        width: .1em;
       }
 
       button::before {
@@ -510,7 +515,6 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: #F6F9FC;
         opacity: .7;
       }
       button {
@@ -539,18 +543,39 @@
       }
 
       #start-menu button {
-        border: 1px solid white;
-        color: white;
-        margin-bottom: .25rem;
+        padding: 1em;
+        padding-right: 3em;
+        padding-left: 3em;
+        border-radius: 2em;
+        color: #434959;
+        margin-bottom: 1rem;
+        box-shadow: inset 0 0 1px 1px rgba(223, 224, 227, .5), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+        backdrop-filter: blur(40px);
+        background:
+          radial-gradient(circle at 100% 100%, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 100%),
+          rgba(246, 249, 252, .7);
+        position: relative;
+        overflow: visible;
+        transition: background 100ms;
       }
       #start-menu button:active {
         background: white;
-        color: black;
       }
       #start-menu button.checked {
-        background: white;
-        color: black;
         pointer-events: none;
+        background:
+          radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%),
+          linear-gradient(135deg, rgba(66, 84, 112,.8) 0%, rgba(122, 148, 186,0) 100%);
+        border: none;
+        box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+      }
+
+      #start-menu #start-button {
+        background: radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%), rgba(104, 149, 247, .7);
+        box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+        font-size: .7rem;
+        padding-left: 2em;
+        padding-right: 2em;
       }
 
       #pause-button {
@@ -585,16 +610,7 @@
         height: 100dvh;
         pointer-events: none;
         background: transparent;
-        white-space: pre;
         box-sizing: border-box;
-        font-family: 'DungGeunMo', monospace;
-        color: white;
-        font-smooth: never;
-        -webkit-font-smoothing: none;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeSpeed;
-        font-size: 1.5rem;
-        font-kerning: none;
         -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -616,6 +632,21 @@
         background: #0700AA;
         pointer-events: auto;
         cursor: none;
+      }
+      #error-message {
+        opacity: 0;
+        white-space: pre-wrap;
+        font-family: 'DungGeunMo', monospace;
+        color: white;
+        font-smooth: never;
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeSpeed;
+        font-size: 1.5rem;
+        font-kerning: none;
+      }
+      #overlay.error #error-message {
+        opacity: 1;
       }
     </style>
   </head>
@@ -658,7 +689,7 @@
 
       <div>
         <h1>[17세기 소년을 죽이는 법]</h1>
-        <h2>채팅방에 오신 것을 환영합니다 !</h2>
+        <h2>채<span class="kerning"></span>팅<span class="kerning"></span>방<span class="kerning"></span>에<span class="kerning"></span> <span class="kerning"></span>오<span class="kerning"></span>신<span class="kerning"></span> <span class="kerning"></span>것<span class="kerning"></span>을<span class="kerning"></span> <span class="kerning"></span>환<span class="kerning"></span>영<span class="kerning"></span>합<span class="kerning"></span>니<span class="kerning"></span>다<span class="kerning"></span> <span class="kerning"></span>!</h2>
         <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)">기본 모드</button><br>
         <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
         <br><br>
@@ -668,7 +699,29 @@
       </div>
     </div>
 
-    <div id="overlay"></div>
+    <div id="overlay">
+      <div id="error-message">A problem has been detected and windows has been shut down to prevent damage to your computer.
+
+TRAP_CAUSE_UNKNOWN
+
+If this is the first time you've seen this stop error screen,
+restart your computer. If this screen appears again, fol1ow
+these steps:
+check to make sure any new hardware or software is properly installed.
+If this is a new installation, ask your hardware or software manufacturer
+for any windows updates you might need.
+
+If problems continue, disable or remove any newly installed hardware
+or software. Disable BIOS memory options such as caching or shadowing.
+If you need to use safe Mode to remove or disable components, restart
+your computer, press spacebar to select advanced Startup options, and then
+select safe Mode.
+
+Technical information:
+
+*** STOP: 0x00000012 (0x00000002,^
+      </div>
+    </div>
 
   </body>
   <script defer type="text/javascript">
@@ -823,27 +876,6 @@
           await delay(1000);
 
           overlayElement.className = "error";
-          overlayElement.textContent = `A problem has been detected and windows has been shut down to prevent damage
-to your computer.
-
-TRAP_CAUSE_UNKNOWN
-
-If this is the first time you've seen this stop error screen,
-restart your computer. If this screen appears again, fol1ow
-these stens:
-check to make sure any new hardware or software is properly installed.
-If this is a new installation, ask your hardware or software manufacturer
-for any windows updates you might need.
-
-If problems continue, disable or remove any newly installed hardware
-or software. Disable BIOS memory options such as caching or shadowing.
-If you need to use safe Mode to remove or disable components, restart
-your computer, press spacebar to select advanced Startup options, and then
-select safe Mode.
-
-Technical information:
-
-*** STOP: 0x00000012 (0x00000002,^`;
 
           var clicksAndTaps = 0;
           document.onkeyup = function() {
@@ -953,9 +985,11 @@ Technical information:
       //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
         if (message.includes(key)) {
-          if (BANK[key].showOnce && readResponses.indexOf(""+BANK[key].rowId) != -1) {
+          if (BANK[key].showOnce && readResponses.indexOf(BANK[key].rowId) != -1) {
             continue;
           }
+
+          readResponses.push(BANK[key].rowId);
 
           if (BANK[key].effect) {
             await playEffect(key);
@@ -981,8 +1015,6 @@ Technical information:
       for (let i=0; i<matchedIds.length; i++) {
         const id = matchedIds[i];
         const arr = matchedMessageArrays[id];
-
-        readResponses.push(id);
 
         for (let j=0; j<arr.length; j++) {
           var text = arr[j];
@@ -1202,10 +1234,8 @@ Technical information:
       window.onbeforeunload();
       document.getElementById("game").classList.add("gone");
       overlayElement.className = "";
-      overlayElement.textContent = "";
       loggedMessages = {}
       chatOpen = false;
-      easyMode = false;
       restoreInputControl();
       input.blur();
       scrollDownIcon.classList.add("gone");
