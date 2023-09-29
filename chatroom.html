@@ -961,7 +961,7 @@ Technical information:
               this.classList.add("red");
             }.bind(element), 500);
             if (speed%2==0) {
-              var sound = new Audio("res/chatroom/message.mp3");
+              var sound = new Audio("res/chatroom/sound/message.mp3");
               sound.play();
             }
             await delay(Math.max(0, lerp(30, -30, speed/totalMessages)));
