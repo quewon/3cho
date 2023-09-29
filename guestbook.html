@@ -3,9 +3,174 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <style media="screen">
+      @font-face {
+        font-family: 'SCDream';
+        src: url('res/SCDream/SCDream6.otf') format('otf');
+      }
+
+      html, body {
+        margin: 0;
+        font-family: "SCDream", sans-serif;
+        background: black;
+      }
+
+      video {
+        cursor: none;
+        width: 100vw;
+        height: 100dvh;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .gone {
+        display: none;
+      }
+
+      #click-prompt {
+        color: white;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+      }
+
+      #recording {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+      }
+
+      #webcam {
+        scale: -1 1;
+      }
+    </style>
   </head>
   <body>
 
+    <div id="click-prompt">
+      방명록 프로그램을 시작하려면 <span style="color: red">카메라 이용을 허용</span>한 다음, 화면을 <span style="color: red">클릭</span>해주세요.
+    </div>
+
+    <div id="recording" class="gone">
+      <video id="webcam" autoplay muted playsinline></video>
+
+
+    </div>
+
   </body>
-  <script defer type="text/javascript" src=""></script>
+  <script defer type="text/javascript">
+    window.onload = async function() {
+      const videoElement = document.getElementById("webcam");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoElement.srcObject = stream;
+      await document.getElementById("webcam").play();
+
+      // await loadSounds({
+      //   "recording": ""
+      // });
+
+      await loadVideos({
+        "intro": "res/guestbook/intro.mp4",
+        "news-intro": "res/guestbook/newsintro.mp4",
+        "credits": "res/guestbook/credits.mp4"
+      });
+
+      loopVideo("intro");
+
+      document.onclick = function() {
+        document.getElementById("click-prompt").classList.add("gone");
+        restart();
+        document.onclick = null;
+      }
+    }
+
+    function restart() {
+      document.getElementById("recording").classList.add("gone");
+
+      playVideo("intro");
+
+      document.onkeyup = async function(e) {
+        if (e.code == "KeyR") {
+          document.onkeyup = null;
+          await startRecording();
+          playVideo();
+        }
+      }
+    }
+
+    async function startRecording() {
+      startedRecordingTime = Date.now();
+      document.getElementById("recording").classList.remove("gone");
+    }
+
+    var videos = {};
+    var startedRecordingTime;
+    async function loadVideos(videosObject) {
+      return new Promise((resolve) => {
+        var videosLoaded = 0;
+
+        for (let videoName in videosObject) {
+          videos[videoName] = document.createElement("video");
+          videos[videoName].classList.add("gone");
+          document.body.appendChild(videos[videoName]);
+          videos[videoName].load();
+          videos[videoName].addEventListener("loadeddata", function() {
+            videosLoaded++;
+            if (videosLoaded >= Object.keys(videosObject).length) {
+              console.log("loaded videos");
+              resolve();
+            }
+          });
+          videos[videoName].src = videosObject[videoName];
+        }
+      });
+    }
+
+    var sounds = {};
+    async function loadSounds(soundsObject) {
+      return new Promise((resolve) => {
+        var soundsLoaded = 0;
+
+        for (let soundName in soundsObject) {
+          sounds[soundName] = document.createElement("audio");
+          sounds[soundName].addEventListener("onload", function() {
+            soundsLoaded++;
+            if (soundsLoaded >= Object.keys(soundsObject).length) {
+              console.log("loaded sounds");
+              resolve();
+            }
+          });
+          sounds[soundName].src = soundsObject[soundName];
+        }
+      });
+    }
+
+    function loopVideo(videoName) {
+      videos[videoName].addEventListener("ended", function() {
+        this.currentTime = 0;
+        this.play();
+      }, false);
+    }
+
+    function playVideo(videoName) {
+      for (let name in videos) {
+        videos[name].classList.add("gone");
+        videos[name].pause();
+      }
+      if (videoName) {
+        videos[videoName].classList.remove("gone");
+        videos[videoName].currentTime = 0;
+        videos[videoName].play();
+      }
+    }
+
+    function playSound(soundName) {
+      sounds[soundName].currentTime = 0;
+      sounds[soundName].play();
+    }
+  </script>
 </html>
