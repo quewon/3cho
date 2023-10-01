@@ -15,12 +15,19 @@
          font-style: normal;
       }
       @font-face {
-        font-family: 'SCDream5',
-        src: url('res/SCDream/SCDream5.otf') format('otf');
+        font-family: 'SCDream';
+        font-weight: 400;
+        src: url('res/SCDream/SCDream4.otf') format('opentype');
       }
       @font-face {
-        font-family: 'SCDream6',
-        src: url('res/SCDream/SCDream6.otf') format('otf');
+        font-family: 'SCDream';
+        font-weight: 500;
+        src: url('res/SCDream/SCDream5.otf') format('opentype');
+      }
+      @font-face {
+        font-family: 'SCDream';
+        font-weight: 600;
+        src: url('res/SCDream/SCDream6.otf') format('opentype');
       }
 
       :root {
@@ -50,30 +57,23 @@
         width: 100%;
         height: 100%;
       }
-      .backing {
-        z-index: -1;
-      }
-      .backing:nth-child(1) {
-        opacity: .9;
-        background: #ECF7FF;
-      }
-      .backing:nth-child(2) {
-        opacity: .9;
-        background: radial-gradient(rgba(225, 225, 225, 1), transparent);
-      }
-      .backing:nth-child(3) {
-        opacity: 1;
-        background: radial-gradient(rgba(255,255,255,.4), transparent);
-        border: 1px solid rgba(255,255,255,.6);
-        box-sizing: border-box;
-        backdrop-filter: blur(10px);
-      }
 
       body {
         width: 100vw;
         height: 100dvh;
         display: flex;
         flex-direction: column;
+      }
+
+      .backing {
+        z-index: -1;
+        background:
+          radial-gradient(rgba(255,255,255,.4), transparent),
+          radial-gradient(rgba(225, 225, 225, .9), transparent),
+          rgba(236, 247, 255, .9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,.6);
+        box-sizing: border-box;
       }
 
       main {
@@ -107,7 +107,7 @@
         background: white;
       }
       .glass:nth-child(3) {
-        background: radial-gradient(rgba(255,255,255,.4), transparent);
+        background: radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%);
         backdrop-filter: blur(10px);
       }
       .container {
@@ -532,6 +532,7 @@
         position: absolute;
         top: 0;
         left: 0;
+        font-family: 'SCDream', 'NanumSquareNeo-Variable', sans-serif;
       }
       #start-menu .glass {
         border-radius: 4rem;
@@ -564,14 +565,13 @@
       h1 {
         color: #3C5895;
         font-size: 1.1rem;
-        font-family: 'SCDream6', 'NanumSquareNeo-Variable', sans-serif;
+        font-weight: 600;
       }
       h2 {
         color: black;
         font-size: 1.3rem;
         font-weight: 400;
         margin-bottom: 2rem;
-        font-family: 'SCDream5', 'NanumSquareNeo-Variable', sans-serif;
       }
       h2 .kerning {
         display: inline-block;
@@ -587,14 +587,32 @@
         opacity: .7;
       }
       button {
-        background: transparent;
+        padding: 1em;
+        padding-right: 3em;
+        padding-left: 3em;
+        border-radius: 2em;
+        color: #434959;
+        margin-bottom: 1rem;
+        box-shadow: inset 0 0 1px 1px rgba(223, 224, 227, .5), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+        backdrop-filter: blur(40px);
+        background:
+          radial-gradient(circle at 100% 100%, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 100%),
+          rgba(246, 249, 252, .7);
+        position: relative;
+        overflow: visible;
+        transition: background 100ms;
+
         border: none;
-        color: black;
-        padding: .5em;
-        padding-top: 0em;
-        padding-bottom: 0em;
         font-size: inherit;
         font-family: inherit;
+        font-weight: 400;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Edge, Opera and Firefox */
       }
       button:hover {
         cursor: pointer;
@@ -612,26 +630,15 @@
         overflow: hidden;
       }
 
-      #start-menu button {
-        padding: 1em;
-        padding-right: 3em;
-        padding-left: 3em;
-        border-radius: 2em;
-        color: #434959;
-        margin-bottom: 1rem;
-        box-shadow: inset 0 0 1px 1px rgba(223, 224, 227, .5), 2px 3px 5px 0 rgba(0, 0, 0, .12);
-        backdrop-filter: blur(40px);
-        background:
-          radial-gradient(circle at 100% 100%, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 100%),
-          rgba(246, 249, 252, .7);
-        position: relative;
-        overflow: visible;
-        transition: background 100ms;
+      #game button {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        backdrop-filter: none;
       }
-      #start-menu button:active {
-        /* background: white; */
-      }
-      #start-menu button.checked {
+
+      button.checked {
         pointer-events: none;
         background:
           radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%),
@@ -643,6 +650,8 @@
       .start-button {
         background: radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%), rgba(104, 149, 247, .7);
         box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+      }
+      button.small {
         font-size: .7rem;
         padding-left: 2em;
         padding-right: 2em;
@@ -752,19 +761,95 @@
         height: 100%;
         overflow: visible;
         background: transparent;
+        font-family: 'SCDream', 'NanumSquareNeo-Variable', sans-serif;
       }
       dialog .body {
         display: flex;
       }
       dialog::backdrop {
-        background: rgba(0, 0, 0, .5);
+        background: rgba(48, 52, 65, .8);
+      }
+
+      dialog .x {
+        position: absolute;
+        top: 1.4rem;
+        left: calc(100% - 1.5rem);
+        width: .7rem;
+        cursor: pointer;
+      }
+      dialog .icon {
+        position: relative;
+        top: 0;
+        left: 0;
+        translate: unset;
+        font-size: 2.5rem;
+        margin-bottom: -.25em;
+      }
+      dialog h1 {
+        color: black;
+        margin: 0;
+        font-weight: 500;
+      }
+      dialog button {
+        margin: 0;
+        box-shadow: inset 0 0 1px 1px rgba(223, 224, 227, .5), 1px 1px 3px 0 rgba(0, 0, 0, .2);
+        background: linear-gradient(-60deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 100%);
+      }
+      dialog .start-button {
+        box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 1px 1px 3px 0 rgba(0, 0, 0, .2);
+      }
+      dialog .flexbox {
+        display: flex;
+        gap: .7rem;
+        justify-content: center;
+      }
+      #name-dialog,
+      #help-dialog {
+        border-radius: 2rem;
+        max-height: unset;
+        width: 30vw;
+        height: fit-content;
+        margin: auto;
+        background:
+          radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,.1688) 55%, rgba(255,255,255,0) 100%),
+          linear-gradient(313deg, rgba(177, 188, 210, .2) 0%, #98B2D7 100%);
+        box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.2), 0 5px 5px 0 rgba(0, 0, 0, .25);
+        backdrop-filter: blur(10px);
+        padding: 5rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        text-align: center;
+        position: relative;
+      }
+      #name-dialog[open],
+      #help-dialog[open] {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      #name-dialog input {
+        text-align: center;
+        border-radius: 1rem;
+        border: 1px solid rgba(67, 73, 89, .2);
+        padding: 1em;
+        width: 100%;
+        box-sizing: border-box;
+        font-size: .8rem;
+        font-family: 'NanumSquareNeo-Variable', sans-serif;
+      }
+      #name-dialog input:focus {
+        border-color: #434959;
+      }
+      #name-dialog input::placeholder {
+        color: #4F4F4F;
+        font-size: inherit;
+        font-weight: 300;
       }
     </style>
   </head>
   <body>
 
-    <div class="backing"></div>
-    <div class="backing"></div>
     <div class="backing"></div>
 
     <div id="game">
@@ -798,7 +883,7 @@
 
         <div id="input-container">
           <div id="input-wrapper">
-            <input type="text" autofocus />
+            <input id="main-input" type="text" autofocus autocomplete="off" />
             <button onclick="sendMessage()"></button>
           </div>
         </div>
@@ -822,7 +907,7 @@
           <br>
           <div id="mode-desc"></div>
           <br>
-          <button class="start-button" onclick="start()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></img></button>
+          <button class="start-button small" onclick="nameDialog.showModal()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></img></button>
         </div>
       </div>
     </div>
@@ -851,17 +936,20 @@ Technical information:
       </div>
     </div>
 
+    <dialog id="help-dialog">
+    </dialog>
     <dialog id="name-dialog">
-      <img src="" alt="">
-      <div class="">
-        채팅방에 입장하기 전, 닉네임을 설정해주세요!
+      <img class="x" src="res/chatroom/icons/x.svg" onclick="this.parentElement.close()">
+      <img class="icon" src="res/chatroom/icons/name.svg">
+      <div>
+        <h1>채팅방에 입장하기 전, 닉네임을 설정해주세요!</h1>
       </div>
       <div class="">
-        <input type="text" placeholder="최소 2자, 최대 20자의 한글/영문/숫자 닉네임" value="">
+        <input id="name-input" minlength="2" maxlength="20" type="text" placeholder="최소 2자, 최대 20자의 한글/영문/숫자 닉네임" value="" autocomplete="off">
       </div>
       <div class="flexbox">
-        <button type="button">랜덤 닉네임 생성하기</button>
-        <button type="button" class="start-button">입장하기</button>
+        <button type="button" class="small" onclick="generatePlayerUsername();nameInput.focus()">랜덤 닉네임 생성하기</button>
+        <button type="button" class="start-button small" onclick="start()">입장하기</button>
       </div>
     </dialog>
     <dialog id="media-dialog">
@@ -974,7 +1062,7 @@ Technical information:
           for (let row=1; row<array.length; row++) {
             const value = array[row][col];
             if (!value || value.trim() == "") continue;
-            output[key].push(value);
+            output[key].push(value.trim());
           }
         }
 
@@ -1069,12 +1157,14 @@ Technical information:
 
     const startMenu = document.getElementById("start-menu");
     const main = document.querySelector("main");
-    const input = document.querySelector("input");
+    const input = document.getElementById("main-input");
+    const nameInput = document.getElementById("name-input");
     const scrollDownIcon = document.getElementById("scroll-icon");
     const modeDesc = document.getElementById("mode-desc");
     const modeDetails = document.getElementById("mode-details");
 
-    const menuDialog = document.getElementById("menu-dialog");
+    const nameDialog = document.getElementById("name-dialog");
+    const helpDialog = document.getElementById("help-dialog");
     const mediaDialog = document.getElementById("media-dialog");
     const mediaDialogBody = mediaDialog.getElementsByClassName("body")[0];
 
@@ -1525,6 +1615,15 @@ Technical information:
     //
 
     function start() {
+      const regex = /[^\u3131-\uD79D0-9a-zA-Z ]/g;
+      nameInput.value = nameInput.value.replaceAll(regex, "");
+      playerUsername = nameInput.value.trim();
+      if (playerUsername.length < 2) {
+        nameInput.focus();
+        return;
+      }
+
+      nameDialog.close();
       document.getElementById("game").classList.remove("gone");
 
       input.value = "";
@@ -1585,6 +1684,8 @@ Technical information:
     function restart() {
       window.onbeforeunload();
       document.getElementById("game").classList.add("gone");
+      nameInput.value = "";
+      playerUsername = "";
       overlayElement.className = "";
       loggedMessages = {}
       chatOpen = false;
@@ -1596,7 +1697,6 @@ Technical information:
       startMenu.querySelectorAll("button")[1].classList.remove("checked");
       modeDesc.textContent = "";
       startMenu.classList.remove("gone");
-      playerUsername = generateName();
       readResponses = [];
       readResponseKeys = [];
     }
@@ -1604,6 +1704,27 @@ Technical information:
     //
 
     var _loadCount = 0;
+
+    nameInput.addEventListener("keypress", function(e) {
+      if (e.key == "Enter") {
+        start();
+        return;
+      };
+
+      const regex = /[^\u3131-\uD79D0-9a-zA-Z ]/g;
+      if (regex.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+    nameInput.addEventListener("keyup", function(e) {
+      const regex = /[^\u3131-\uD79D0-9a-zA-Z ]/g;
+      nameInput.value = nameInput.value.replaceAll(regex, "");
+      playerUsername = nameInput.value;
+    });
+    function generatePlayerUsername() {
+      playerUsername = generateName();
+      nameInput.value = playerUsername;
+    }
 
     document.body.classList.add("gone");
     main.addEventListener("scroll", function(e) {
