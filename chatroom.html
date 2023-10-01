@@ -448,8 +448,9 @@
         background-color: #F6F9FC;
         padding-left: 1em;
         padding-right: 1em;
+        align-items: center;
       }
-      #input-wrapper button {
+      #game #input-wrapper button {
         /* border: 1px solid black; */
         background-image: url("res/chatroom/icons/send.svg");
         background-position: center;
@@ -461,7 +462,23 @@
 
         width: 2em;
         height: 2em;
-        align-self: center;
+      }
+      #timer {
+        position: absolute;
+        top: 1rem;
+        left: 50%;
+        translate: -50% 0;
+        white-space: pre;
+        font-size: .8rem;
+        background: white;
+        padding: 1em;
+        padding-left: 1.5em;
+        padding-right: 1.5em;
+        border-radius: 2rem;
+        opacity: .8;
+      }
+      main {
+        padding-top: 4.5em;
       }
 
       #scroll-icon {
@@ -743,6 +760,19 @@
         padding: 0;
       }
 
+      #media-dialog {
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        max-width: 50vw;
+        max-height: 50dvh;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: unset;
+      }
       dialog video,
       dialog img {
         max-width: 100%;
@@ -751,17 +781,6 @@
         top: 50%;
         left: 50%;
         translate: -50% -50%;
-      }
-      dialog {
-        padding: 0;
-        border: 0;
-        max-width: 50vw;
-        max-height: 50dvh;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-        background: transparent;
-        font-family: 'SCDream', 'NanumSquareNeo-Variable', sans-serif;
       }
       dialog .body {
         display: flex;
@@ -806,8 +825,10 @@
       .flexbox.column {
         flex-direction: column;
       }
-      #name-dialog,
-      #help-dialog {
+      dialog {
+        border: 0;
+        overflow: visible;
+        font-family: 'SCDream', 'NanumSquareNeo-Variable', sans-serif;
         border-radius: 2rem;
         max-width: none;
         max-height: none;
@@ -825,8 +846,7 @@
         position: relative;
         box-sizing: border-box;
       }
-      #name-dialog[open],
-      #help-dialog[open] {
+      dialog[open] {
         display: flex;
         flex-direction: column;
         gap: 1rem;
@@ -864,7 +884,8 @@
       #help-dialog .icon {
         margin-bottom: 0;
       }
-      #help-dialog p {
+      dialog p {
+        color: white;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, .25);
         font-size: .8rem;
         margin: 0;
@@ -913,8 +934,11 @@
         <div class="glass"></div>
         <div class="glass"></div>
         <div class="glass"></div>
+
         <main>
         </main>
+
+        <div id="timer">남은 시간 <b>00:00</b></div>
 
         <div id="input-container">
           <div id="input-wrapper">
@@ -1018,6 +1042,20 @@ Technical information:
         <button type="button" class="start-button small" onclick="start()">입장하기</button>
       </div>
     </dialog>
+    <dialog id="timer-dialog">
+      <img class="x" src="res/chatroom/icons/x.svg" onclick="this.parentElement.close()">
+      <div>
+        <h1>시간이 다 됐습니다.</h1>
+      </div>
+      <div>
+        <p>플레이해주셔서 감사합니다!</p>
+        <p>이제 소년에 대해 얻은 정보를 활용해 앞에 보이는 벽에 쪽지를 남겨주세요.</p>
+        <p>그 다음에 방명록실에서 꼭 방명록을 남기고 가시면 되겠습니다.</p>
+      </div>
+      <div class="flexbox">
+        <button type="button" class="small" onclick="timerDialog.close();">닫기</button>
+      </div>
+    </dialog>
     <dialog id="media-dialog">
       <div class="body">
 
@@ -1034,6 +1072,7 @@ Technical information:
     var DETAILS = {};
     var USERNAMES = {};
 
+    const MAX_PLAY_TIME = 3;
     var MESSAGE_SOUND = new Audio("res/chatroom/sound/message.mp3");
     var ERROR_SOUND = new Audio("res/chatroom/sound/error.mp3");
 
@@ -1212,12 +1251,14 @@ Technical information:
     // dom stuff
 
     var startTimestamp;
+    var remainingTime;
     var loggedMessages;
     var readResponses;
     var readResponseKeys;
     var chatOpen;
     var easyMode;
     var playerUsername;
+    var timerInterval;
 
     const SCROLL_BASELINE = 0;
 
@@ -1225,10 +1266,12 @@ Technical information:
     const main = document.querySelector("main");
     const input = document.getElementById("main-input");
     const nameInput = document.getElementById("name-input");
+    const timerElement = document.getElementById("timer");
     const scrollDownIcon = document.getElementById("scroll-icon");
     const modeDesc = document.getElementById("mode-desc");
     const modeDetails = document.getElementById("mode-details");
 
+    const timerDialog = document.getElementById("timer-dialog");
     const nameDialog = document.getElementById("name-dialog");
     const helpDialog = document.getElementById("help-dialog");
     const mediaDialog = document.getElementById("media-dialog");
@@ -1295,15 +1338,16 @@ Technical information:
         element.appendChild(like);
         this.likeElement = like;
 
-        for (let word of text.split(" ")) {
-          const periodIndex = word.indexOf(".");
-          word = word.replaceAll("<br>","");
-          if (periodIndex != -1 && periodIndex < word.length-1 && /[A-Za-z]/.test(word)) {
-            text = text.replaceAll(word, "<span class='fake-link'>"+word+"</span>");
+        if (type != "media") {
+          for (let word of text.split(" ")) {
+            const periodIndex = word.indexOf(".");
+            word = word.replaceAll("<br>","");
+            if (periodIndex != -1 && periodIndex < word.length-1 && /[A-Za-z]/.test(word)) {
+              text = text.replaceAll(word, "<span class='fake-link'>"+word+"</span>");
+            }
           }
         }
 
-        var messageDetails = [];
         for (let dkey in DETAILS) {
           if (!DETAILS[dkey]["이펙트키"]) continue;
           let indexesFound = indexOfAll(text.toLowerCase(), dkey);
@@ -1522,7 +1566,9 @@ Technical information:
           var textDelayLength = text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70;
 
           for (let media of messageDetails) {
-            var html = "<div class='headline'>"+media["헤드라인"]+"</div><div class='body'>"+media["내용"]+"</div>";
+            var html = "";
+            if (media["헤드라인"]) html += "<div class='headline'>"+media["헤드라인"]+"</div>";
+            if (media["내용"]) html += "<div class='body'>"+media["내용"]+"</div>";
 
             if (media["이미지/영상"]) {
               if (media["이미지/영상"].includes(".mp4")) {
@@ -1680,6 +1726,21 @@ Technical information:
 
     //
 
+    function updateTimer() {
+      remainingTime--;
+
+      if (remainingTime <= 0) {
+        timerDialog.showModal();
+        restart();
+      }
+
+      var min = Math.floor(remainingTime/60);
+      var sec = Math.floor(remainingTime%60);
+      if (sec < 10) sec = "0"+sec;
+
+      timerElement.innerHTML = "남은 시간 <b>"+min+":"+sec+"</b>";
+    }
+
     function start() {
       const regex = /[^\u3131-\uD79D0-9a-zA-Z ]/g;
       nameInput.value = nameInput.value.replaceAll(regex, "");
@@ -1700,6 +1761,10 @@ Technical information:
       input.focus();
 
       startTimestamp = new Date();
+      remainingTime = MAX_PLAY_TIME;
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+
       new Message(null, startTimestamp.getFullYear()+"년 "+(startTimestamp.getMonth()+1)+"월 "+startTimestamp.getDate()+"일", "center", "date");
       const inviteText = "<u>3초'</u>님이 <u>"+playerUsername+"</u>님을 초대했습니다.";
       new Message(null, inviteText, "center", "invite");
@@ -1765,6 +1830,7 @@ Technical information:
       startMenu.classList.remove("gone");
       readResponses = [];
       readResponseKeys = [];
+      clearInterval(timerInterval);
     }
 
     //
