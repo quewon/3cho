@@ -16,6 +16,11 @@
       }
       @font-face {
         font-family: 'SCDream';
+        font-weight: 300;
+        src: url('res/SCDream/SCDream3.otf') format('opentype');
+      }
+      @font-face {
+        font-family: 'SCDream';
         font-weight: 400;
         src: url('res/SCDream/SCDream4.otf') format('opentype');
       }
@@ -528,6 +533,7 @@
         font-size: 24px;
         font-weight: 100;
         pointer-events: auto;
+        font-family: 'SCDream', 'NanumSquareNeo-Variable', sans-serif;
       }
       header button {
         height: 1em;
@@ -536,7 +542,7 @@
       .light {
         display: block;
         translate: 0 .1rem;
-        font-weight: 200;
+        font-weight: 300;
       }
 
       .gone {
@@ -622,7 +628,7 @@
         border: none;
         font-size: inherit;
         font-family: inherit;
-        font-weight: 400;
+        font-weight: 500;
         -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -643,7 +649,7 @@
       #mode-desc {
         white-space: pre;
         line-height: 1.5em;
-        font-weight: 300;
+        font-weight: 400;
         overflow: hidden;
       }
 
@@ -667,6 +673,10 @@
       .start-button {
         background: radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%), rgba(104, 149, 247, .7);
         box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
+      }
+      .start-button .icon {
+        font-size: 1em;
+        margin-bottom: 0;
       }
       button.small {
         font-size: .7rem;
@@ -854,14 +864,14 @@
       }
 
       #name-dialog {
-        width: 30rem;
+        width: 33rem;
       }
       #name-dialog input {
         text-align: center;
         border-radius: 1rem;
         border: 1px solid rgba(67, 73, 89, .2);
         padding: 1em;
-        width: 100%;
+        width: 25rem;
         box-sizing: border-box;
         font-size: .8rem;
         font-family: 'NanumSquareNeo-Variable', sans-serif;
@@ -872,7 +882,7 @@
       #name-dialog input::placeholder {
         color: #4F4F4F;
         font-size: inherit;
-        font-weight: 300;
+        font-weight: 400;
       }
 
       #help-dialog {
@@ -890,6 +900,10 @@
         font-size: .8rem;
         margin: 0;
         margin-bottom: .6em;
+      }
+      dialog p em {
+        font-style: normal;
+        color: #434959;
       }
       #help-dialog .flexbox {
         font-size: .6rem;
@@ -1039,7 +1053,7 @@ Technical information:
       </div>
       <div class="flexbox">
         <button type="button" class="small" onclick="generatePlayerUsername();nameInput.focus()">랜덤 닉네임 생성하기</button>
-        <button type="button" class="start-button small" onclick="start()">입장하기</button>
+        <button type="button" class="start-button small" onclick="start()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></button>
       </div>
     </dialog>
     <dialog id="timer-dialog">
