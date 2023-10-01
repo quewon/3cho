@@ -774,7 +774,7 @@
             <img class="icon" src="res/chatroom/icons/help.svg">
           </button>
         </div>
-        <span class="absolute center light">17세기 소년을 죽이는 법</span>
+        <span class="absolute center light">안고독한 17세기 소년</span>
       </header>
 
       <div class="container">
@@ -802,7 +802,7 @@
       <img class="mockup" src="res/chatroom/mmmockup.png">
 
       <div>
-        <h1>[17세기 소년을 죽이는 법]</h1>
+        <h1>[안고독한 17세기 소년]</h1>
         <h2>채<span class="kerning"></span>팅<span class="kerning"></span>방<span class="kerning"></span>에<span class="kerning"></span> <span class="kerning"></span>오<span class="kerning"></span>신<span class="kerning"></span> <span class="kerning"></span>것<span class="kerning"></span>을<span class="kerning"></span> <span class="kerning"></span>환<span class="kerning"></span>영<span class="kerning"></span>합<span class="kerning"></span>니<span class="kerning"></span>다<span class="kerning"></span> <span class="kerning"></span>!</h2>
         <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)">기본 모드</button><br>
         <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
@@ -859,32 +859,36 @@ Technical information:
 
     var overlayElement = document.getElementById("overlay");
 
-    function load_details(onload) {
-      function SheetArrayToObject(array) {
-        if (array == undefined) return undefined;
+    function SheetArrayToObject(array) {
+      if (array == undefined) return undefined;
 
-        const keys = array[0];
-        const output = {};
+      const keys = array[0];
+      const output = {};
 
-        for (let row=1; row<array.length; row++) {
-          if (array[row].length <= 1) continue;
-          var entry = {};
-          var key = array[row][0];
+      for (let row=1; row<array.length; row++) {
+        if (array[row].length <= 1) continue;
+        var entry = {};
+        var key = array[row][0];
 
-          for (let col=0; col<keys.length; col++) {
-            entry[keys[col]] = array[row][col];
-          }
-
-          var keywords = array[row][0].split(",");
-          for (let keyword of keywords) {
-            if (keyword.trim() == "") continue;
-            output[keyword] = entry;
-          }
+        entry.rowId = row;
+        for (let col=0; col<keys.length; col++) {
+          entry[keys[col]] = array[row][col];
         }
 
-        return output;
+        var keywords = array[row][0].split(",");
+        for (let keyword of keywords) {
+          if (keyword.trim() == "") continue;
+          const entryCopy = Object.assign({
+            keyword: keyword.trim()
+          }, entry);
+          output[keyword.trim().toLowerCase()] = entryCopy;
+        }
       }
 
+      return output;
+    }
+
+    function load_details(onload) {
       fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/details/?key="+API_KEY)
       .then((response) => response.json())
       .then((data) => {
@@ -899,31 +903,12 @@ Technical information:
     }
 
     function load_bank(onload) {
-      function SheetArrayToObject(array) {
-        if (array == undefined) return undefined;
+      fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/output/?key="+API_KEY)
+      .then((response) => response.json())
+      .then((data) => {
+        BANK = SheetArrayToObject(data.values);
 
-        const keys = array[0];
-        const output = {};
-
-        for (let row=1; row<array.length; row++) {
-          var entry = {};
-          if (array[row].length <= 1) continue;
-          var keywords = array[row][0].split(",");
-
-          for (let keyword of keywords) {
-            if (keyword.trim() == "") continue;
-
-            output[keyword.toLowerCase().replaceAll(" ","")] = {
-              messages: array[row][1].split("\n"),
-              rowId: row,
-              color: array[row].length <= 2 ? true : array[row][2] != "FALSE",
-              showOnce: array[row].length <= 3 ? false : array[row][3] == "TRUE",
-              effect: array[row].length <= 4 ? null : array[row][4]
-            };
-          }
-        }
-
-        var keywords = Object.keys(output);
+        var keywords = Object.keys(BANK);
         for (let i=keywords.length-1; i>=0; i--) {
           var unnecessaryKey = false;
           for (let key of keywords) {
@@ -934,18 +919,13 @@ Technical information:
             }
           }
           if (unnecessaryKey) {
-            delete output[keywords[i]];
-            keywords = Object.keys(output);
+            delete BANK[keywords[i]];
+            keywords = Object.keys(BANK);
+          } else {
+            BANK[keywords[i]].messages = BANK[keywords[i]]["출력"].split("\n");
           }
         }
 
-        return output;
-      }
-
-      fetch("https://sheets.googleapis.com/v4/spreadsheets/"+SHEET_ID+"/values/output/?key="+API_KEY)
-      .then((response) => response.json())
-      .then((data) => {
-        BANK = SheetArrayToObject(data.values);
         console.log("bank loaded");
         if (onload) onload();
       })
@@ -1135,7 +1115,9 @@ Technical information:
           var keywordElements = document.getElementsByClassName("keyword");
 
           for (let key in BANK) {
-            if (!BANK[key].color) continue;
+            if (BANK[key]["색칠"] == "FALSE") {
+              continue;
+            }
 
             var keywordFound = false;
             for (let id of readResponses) {
@@ -1151,7 +1133,17 @@ Technical information:
               }
             }
 
-            text = text.replaceAll(key, "<a class='keyword "+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+key+"</a>")
+            const lowercaseText = text.toLowerCase();
+            var indexesFound = [];
+            for (let i=0; i<=lowercaseText.length-key.length; i++) {
+              if (lowercaseText.substring(i, i+key.length) == key) {
+                indexesFound.push(i);
+              }
+            }
+            for (let j=indexesFound.length-1; j>=0; j--) {
+              let i = indexesFound[j];
+              text = text.substring(0, i) + "<a class='keyword "+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+ text.substring(i, i+key.length) +"</a>" + text.substring(i+key.length);
+            }
           }
         }
 
@@ -1224,11 +1216,9 @@ Technical information:
 
       //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
-        if (message.includes(key)) {
-          // if (BANK[key].showOnce && readResponses.indexOf(BANK[key].rowId) != -1) {
-          //   continue;
-          // }
+        console.log(key);
 
+        if (message.includes(key)) {
           if (readResponseKeys.indexOf(key) != -1) {
             matchedMessageArrays[BANK[key].rowId] = ["이미 입력된 키워드입니다."];
           } else {
@@ -1242,7 +1232,7 @@ Technical information:
             }
           }
 
-          if (BANK[key].effect) {
+          if (BANK[key]["이펙트키"]) {
             await playEffect(key);
             return;
           }
@@ -1295,7 +1285,7 @@ Technical information:
           var messageDetails = [];
           for (let dkey in DETAILS) {
             if (text.includes(dkey)) {
-              text = text.replaceAll(dkey, "").trim();
+              text = text.replaceAll(dkey, DETAILS[dkey]["대체내용"]).trim();
               messageDetails.push(DETAILS[dkey]);
             }
           }
@@ -1311,13 +1301,16 @@ Technical information:
           for (let media of messageDetails) {
             var html = "<div class='headline'>"+media["헤드라인"]+"</div><div class='body'>"+media["내용"]+"</div>";
 
-            if (media["이미지/영상"].includes(".mp4")) {
-              html += "<video src='res/chatroom/media/"+media["이미지/영상"]+"' loop></video><img class='play-icon' src='res/chatroom/icons/play-media.svg'></img>"
+            if (media["이미지/영상"]) {
+              if (media["이미지/영상"].includes(".mp4")) {
+                html += "<video src='res/chatroom/media/"+media["이미지/영상"]+"' loop></video><img class='play-icon' src='res/chatroom/icons/play-media.svg'></img>"
+              } else {
+                html += "<img src='res/chatroom/media/"+media["이미지/영상"]+"'></img>"
+              }
+              new Message(name, html, "left", "media");
             } else {
-              html += "<img src='res/chatroom/media/"+media["이미지/영상"]+"'></img>"
+              new Message(name, html, "left", "news");
             }
-
-            new Message(name, html, "left", "media");
           }
           if (
             !dontDelay && (
@@ -1352,9 +1345,9 @@ Technical information:
     // effects
 
     async function playEffect(keyword) {
-      console.log("effect: "+BANK[keyword].effect);
+      var effect = BANK[keyword]["이펙트키"];
 
-      switch (BANK[keyword].effect) {
+      switch (effect) {
         case "error":
           ERROR_SOUND.currentTime = 0;
           ERROR_SOUND.play();
@@ -1479,6 +1472,17 @@ Technical information:
       const inviteText = "<u>3초'</u>님이 <u>"+playerUsername+"</u>님을 초대했습니다.";
       new Message(null, inviteText, "center", "invite");
       write_data(inviteText, "invite");
+
+      setTimeout(function() {
+        var intro = `&nbsp;안녕하세요! [안고독한 17세기 소년] 오픈채팅방에 오신 것을 환영합니다.<br>
+        입력창에 키워드를 입력하면 유저들에게 소년에 대한 정보를 얻을 수 있습니다.<br>
+        채팅방에서 15분이라는 시간동안 다양한 방법으로 키워드를 찾아내고 정보를 얻어보세요!<br>
+        15분이 지나면 메인화면으로 돌아가며, 대화내용은 초기화됩니다.<br>
+        더 궁금한 점은 오른쪽 상단의 도움말을 참고해주세요.<br>
+        <br>
+        그럼, 채팅을 시작하겠습니다.`;
+        new Message("3초'", intro, "left");
+      }, 1000);
 
       chatOpen = true;
       setTimeout(read_data, 1000);
