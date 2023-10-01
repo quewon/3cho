@@ -1510,6 +1510,7 @@ Technical information:
 
     mediaDialog.addEventListener("close", function() {
       mediaDialogBody.innerHTML = "";
+      input.focus();
     });
     mediaDialog.addEventListener("click", function() {
       this.close();
