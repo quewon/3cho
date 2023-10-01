@@ -173,6 +173,16 @@
         }
       }
 
+      .fake-link {
+        text-decoration: underline;
+        cursor: pointer;
+        text-underline-position: under;
+      }
+
+      .response.news .content {
+        border-radius: 0;
+      }
+
       .response.before-media .like,
       .response.before-media .timestamp {
         display: none;
@@ -239,6 +249,8 @@
         line-height: 1.5em;
         padding-top: .75em;
         padding-bottom: .75em;
+        overflow: hidden;
+        word-break: keep-all;
       }
       .response.left .content {
         background: #F6F9FC;
@@ -628,7 +640,7 @@
         box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
       }
 
-      #start-menu #start-button {
+      .start-button {
         background: radial-gradient(circle at 0 0, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 100%), rgba(104, 149, 247, .7);
         box-shadow: inset 0 0 1px 1px rgba(235, 235, 235,.6), 2px 3px 5px 0 rgba(0, 0, 0, .12);
         font-size: .7rem;
@@ -806,10 +818,12 @@
         <h2>채<span class="kerning"></span>팅<span class="kerning"></span>방<span class="kerning"></span>에<span class="kerning"></span> <span class="kerning"></span>오<span class="kerning"></span>신<span class="kerning"></span> <span class="kerning"></span>것<span class="kerning"></span>을<span class="kerning"></span> <span class="kerning"></span>환<span class="kerning"></span>영<span class="kerning"></span>합<span class="kerning"></span>니<span class="kerning"></span>다<span class="kerning"></span> <span class="kerning"></span>!</h2>
         <button onclick="changeMode('normal');checkButton(this.nextElementSibling.nextElementSibling, this)">기본 모드</button><br>
         <button onclick="changeMode('easy');checkButton(this.previousElementSibling.previousElementSibling, this)">쉬운 모드</button>
-        <br><br>
-        <div id="mode-desc"></div>
-        <br>
-        <button id="start-button" onclick="start()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></img></button>
+        <div id="mode-details">
+          <br>
+          <div id="mode-desc"></div>
+          <br>
+          <button class="start-button" onclick="start()">입장하기 <img class="icon" src="res/chatroom/icons/start.svg"></img></button>
+        </div>
       </div>
     </div>
 
@@ -837,7 +851,19 @@ Technical information:
       </div>
     </div>
 
-    <dialog id="menu-dialog"></dialog>
+    <dialog id="name-dialog">
+      <img src="" alt="">
+      <div class="">
+        채팅방에 입장하기 전, 닉네임을 설정해주세요!
+      </div>
+      <div class="">
+        <input type="text" placeholder="최소 2자, 최대 20자의 한글/영문/숫자 닉네임" value="">
+      </div>
+      <div class="flexbox">
+        <button type="button">랜덤 닉네임 생성하기</button>
+        <button type="button" class="start-button">입장하기</button>
+      </div>
+    </dialog>
     <dialog id="media-dialog">
       <div class="body">
 
@@ -1046,7 +1072,7 @@ Technical information:
     const input = document.querySelector("input");
     const scrollDownIcon = document.getElementById("scroll-icon");
     const modeDesc = document.getElementById("mode-desc");
-    const startButton = document.getElementById("start-button");
+    const modeDetails = document.getElementById("mode-details");
 
     const menuDialog = document.getElementById("menu-dialog");
     const mediaDialog = document.getElementById("media-dialog");
@@ -1061,11 +1087,13 @@ Technical information:
 
         var icon = document.createElement("div");
         icon.classList.add("icon");
-        element.classList.add("first");
-        element.classList.add("last");
+        if (type != "news") {
+          element.classList.add("first");
+          element.classList.add("last");
+        }
         element.appendChild(icon);
 
-        if (name) element.dataset.name = name;
+        if (name && type != "news") element.dataset.name = name;
 
         if (main.firstElementChild) {
           if (position == "right" && main.firstElementChild.classList.contains("right")) {
@@ -1076,7 +1104,7 @@ Technical information:
             element.classList.remove("first");
           }
 
-          if (name) {
+          if (name && type != "news") {
             const prevElementName = main.firstElementChild.dataset.name;
             if (prevElementName == name) {
               main.firstElementChild.classList.remove("last");
@@ -1110,6 +1138,32 @@ Technical information:
         };
         element.appendChild(like);
         this.likeElement = like;
+
+        for (let word of text.split(" ")) {
+          const periodIndex = word.indexOf(".");
+          word = word.replaceAll("<br>","");
+          if (periodIndex != -1 && periodIndex < word.length-1 && /[A-Za-z]/.test(word)) {
+            text = text.replaceAll(word, "<span class='fake-link'>"+word+"</span>");
+          }
+        }
+
+        var messageDetails = [];
+        for (let dkey in DETAILS) {
+          if (!DETAILS[dkey]["이펙트키"]) continue;
+          let indexesFound = indexOfAll(text.toLowerCase(), dkey);
+          for (let j=indexesFound.length-1; j>=0; j--) {
+            let i = indexesFound[j];
+            var replacement;
+            if (DETAILS[dkey]["대체내용"]) {
+              replacement = "<span onclick='playEffect(`"+DETAILS[dkey]["이펙트키"]+"`)'>" + DETAILS[dkey]["대체내용"] + "</span>";
+            } else {
+              replacement = "<span onclick='playEffect(`"+DETAILS[dkey]["이펙트키"]+"`)'>" + dkey + "</span>";
+            }
+
+            text = text.substring(0, i) + replacement + text.substring(i+dkey.length);
+            text = text.trim();
+          }
+        }
 
         if (easyMode && type != "media") {
           var keywordElements = document.getElementsByClassName("keyword");
@@ -1290,7 +1344,8 @@ Technical information:
             for (let j=indexesFound.length-1; j>=0; j--) {
               let i = indexesFound[j];
               if (DETAILS[dkey]["대체내용"]) {
-                text = text.substring(0, i) + DETAILS[dkey]["대체내용"] + text.substring(i, i+dkey.length);
+                var replacement = DETAILS[dkey]["대체내용"];
+                text = text.substring(0, i) + replacement + text.substring(i+dkey.length);
                 text = text.trim();
               } else {
                 text = text.substring(0, i) + text.substring(i+dkey.length);
@@ -1321,7 +1376,7 @@ Technical information:
               }
               new Message(name, html, "left", "media");
             } else {
-              new Message(name, html, "left", "news");
+              // new Message(name, html, "left", "news");
             }
           }
           if (
@@ -1356,9 +1411,7 @@ Technical information:
 
     // effects
 
-    async function playEffect(keyword) {
-      var effect = BANK[keyword]["이펙트키"];
-
+    async function playEffect(effect) {
       switch (effect) {
         case "error":
           ERROR_SOUND.currentTime = 0;
@@ -1390,15 +1443,17 @@ Technical information:
           break;
 
         case "die":
+          let messages = BANK.die.messages;
+
           for (let i=0; i<3; i++) {
-            var randomMessage = BANK[keyword].messages[Math.random() * BANK[keyword].messages.length | 0].split(": ")[1];
+            var randomMessage = messages[Math.random() * messages.length | 0].split(": ")[1];
             new Message(generateName(), randomMessage, "left");
             await delay(randomMessage.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70);
           }
 
-          for (let i=0; i<BANK[keyword].messages.length-3; i++) {
+          for (let i=0; i<messages.length-3; i++) {
             setTimeout(function() {
-              var randomMessage = BANK["die"].messages[Math.random() * BANK["die"].messages.length | 0].split(": ")[1];
+              var randomMessage = messages[Math.random() * messages.length | 0].split(": ")[1];
               new Message(generateName(), randomMessage, "left");
             }, i*210);
           }
@@ -1408,7 +1463,7 @@ Technical information:
           overlayElement.className = "red";
 
           for (let speed=0; speed<totalMessages; speed++) {
-            var randomMessage = BANK[keyword].messages[Math.random() * BANK[keyword].messages.length | 0].split(": ")[1];
+            var randomMessage = messages[Math.random() * messages.length | 0].split(": ")[1];
             const element = createAbsoluteMessage(randomMessage);
             setTimeout(function() {
               this.classList.add("red");
@@ -1502,9 +1557,9 @@ Technical information:
 
     function changeMode(mode) {
       if (mode) {
-        startButton.classList.remove("gone");
+        modeDetails.classList.remove("gone");
       } else {
-        startButton.classList.add("gone");
+        modeDetails.classList.add("gone");
       }
       if (mode == "easy") {
         easyMode = true;
