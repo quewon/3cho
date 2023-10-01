@@ -1054,6 +1054,7 @@ Technical information:
     var startTimestamp;
     var loggedMessages;
     var readResponses;
+    var readResponseKeys;
     var chatOpen;
     var easyMode;
     var playerUsername;
@@ -1219,22 +1220,32 @@ Technical information:
 
       message = message.toLowerCase().replaceAll(" ","");
       var matchedMessageArrays = {};
+      var readFast = [];
 
       //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
         if (message.includes(key)) {
-          if (BANK[key].showOnce && readResponses.indexOf(BANK[key].rowId) != -1) {
-            continue;
-          }
+          // if (BANK[key].showOnce && readResponses.indexOf(BANK[key].rowId) != -1) {
+          //   continue;
+          // }
 
-          readResponses.push(BANK[key].rowId);
+          if (readResponseKeys.indexOf(key) != -1) {
+            matchedMessageArrays[BANK[key].rowId] = ["이미 입력된 키워드입니다."];
+          } else {
+            matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
+            readResponseKeys.push(key);
+
+            if (readResponses.indexOf(BANK[key].rowId) != -1) {
+              readFast.push(BANK[key].rowId);
+            } else {
+              readResponses.push(BANK[key].rowId);
+            }
+          }
 
           if (BANK[key].effect) {
             await playEffect(key);
             return;
           }
-
-          matchedMessageArrays[BANK[key].rowId] = BANK[key].messages;
         }
       }
 
@@ -1243,7 +1254,7 @@ Technical information:
       var messages = [];
 
       const matchedIds = Object.keys(matchedMessageArrays);
-      if (matchedIds.length > 0) {
+      if (readFast.length == 0 && matchedIds.length > 0) {
         const firstMessage = matchedMessageArrays[matchedIds[0]][0];
         await delay(firstMessage.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 50);
       }
@@ -1253,6 +1264,7 @@ Technical information:
       for (let i=0; i<matchedIds.length; i++) {
         const id = matchedIds[i];
         const arr = matchedMessageArrays[id];
+        const dontDelay = readFast.includes(Number(id));
 
         for (let j=0; j<arr.length; j++) {
           var text = arr[j];
@@ -1308,8 +1320,10 @@ Technical information:
             new Message(name, html, "left", "media");
           }
           if (
-            j<arr.length-1 ||
-            i<matchedIds.length-1
+            !dontDelay && (
+              j<arr.length-1 ||
+              i<matchedIds.length-1
+            )
           ) {
             if (messageDetails.length > 0) {
               await delay(Math.max(2000 * messageDetails.length, textDelayLength));
@@ -1513,6 +1527,7 @@ Technical information:
       startMenu.classList.remove("gone");
       playerUsername = generateName();
       readResponses = [];
+      readResponseKeys = [];
     }
 
     //
