@@ -1133,13 +1133,7 @@ Technical information:
               }
             }
 
-            const lowercaseText = text.toLowerCase();
-            var indexesFound = [];
-            for (let i=0; i<=lowercaseText.length-key.length; i++) {
-              if (lowercaseText.substring(i, i+key.length) == key) {
-                indexesFound.push(i);
-              }
-            }
+            var indexesFound = indexOfAll(text.toLowerCase(), key);
             for (let j=indexesFound.length-1; j>=0; j--) {
               let i = indexesFound[j];
               text = text.substring(0, i) + "<a class='keyword "+(keywordFound ? "found" : "")+"' onclick=input.value='"+key+"';input.focus()>"+ text.substring(i, i+key.length) +"</a>" + text.substring(i+key.length);
@@ -1189,6 +1183,16 @@ Technical information:
       }
     }
 
+    function indexOfAll(string, key) {
+      var indexesFound = [];
+      for (let i=0; i<=string.length-key.length; i++) {
+        if (string.substring(i, i+key.length) == key) {
+          indexesFound.push(i);
+        }
+      }
+      return indexesFound;
+    }
+
     const delay = ms => new Promise(res => setTimeout(res, ms));
     async function sendMessage() {
       if (input.disabled) return;
@@ -1216,8 +1220,6 @@ Technical information:
 
       //TODO: make messages appear in order that keywords are typed
       for (let key in BANK) {
-        console.log(key);
-
         if (message.includes(key)) {
           if (readResponseKeys.indexOf(key) != -1) {
             matchedMessageArrays[BANK[key].rowId] = ["이미 입력된 키워드입니다."];
@@ -1284,8 +1286,18 @@ Technical information:
 
           var messageDetails = [];
           for (let dkey in DETAILS) {
-            if (text.includes(dkey)) {
-              text = text.replaceAll(dkey, DETAILS[dkey]["대체내용"]).trim();
+            let indexesFound = indexOfAll(text.toLowerCase(), dkey);
+            for (let j=indexesFound.length-1; j>=0; j--) {
+              let i = indexesFound[j];
+              if (DETAILS[dkey]["대체내용"]) {
+                text = text.substring(0, i) + DETAILS[dkey]["대체내용"] + text.substring(i, i+dkey.length);
+                text = text.trim();
+              } else {
+                text = text.substring(0, i) + text.substring(i+dkey.length);
+                text = text.trim();
+              }
+            }
+            if (indexesFound.length > 0) {
               messageDetails.push(DETAILS[dkey]);
             }
           }
