@@ -444,29 +444,28 @@
         height: 1px;
         width: 100vw;
       }
-      #input-wrapper {
+      .input-wrapper {
         display: flex;
         justify-content: space-between;
         border-radius: 2rem;
         overflow: hidden;
         flex-shrink: 0;
         background-color: #F6F9FC;
-        padding-left: 1em;
-        padding-right: 1em;
+        padding-left: 1rem;
+        padding-right: 1rem;
         align-items: center;
       }
-      #game #input-wrapper button {
-        /* border: 1px solid black; */
-        background-image: url("res/chatroom/icons/send.svg");
-        background-position: center;
-        background-size: contain;
+      #input-container .input-wrapper button img {
+        scale: 2 2;
+      }
+      .input-wrapper button {
         color: white;
         border-radius: 50%;
         aspect-ratio: 1;
         margin-right: 1em;
 
-        width: 2em;
-        height: 2em;
+        width: 2rem;
+        height: 2rem;
       }
       #timer {
         position: absolute;
@@ -504,9 +503,7 @@
       }
 
       input {
-        width: 100vw;
         font-family: inherit;
-        font-size: 1.1rem;
         padding: 1em;
         margin: 0;
         outline: none;
@@ -520,13 +517,19 @@
         color: #434959;
         text-align: center;
       }
-      #input-wrapper:has(input:disabled) {
+
+      #main-input {
+        width: 100vw;
+        font-size: 1.1rem;
+      }
+
+      .input-wrapper:has(input:disabled) {
         background: lightgray;
       }
 
       header {
         position: relative;
-        padding: 1.2rem;
+        padding: 1rem;
         padding-left: 3rem;
         padding-right: 3rem;
         text-align: center;
@@ -765,6 +768,49 @@
         flex-grow: 1;
       }
 
+      #search-input-container {
+        font-family: 'NanumSquareNeo-Variable', sans-serif;
+      }
+      #search-input-container .input-wrapper {
+        transition: all .5s;
+        overflow: visible;
+        background: rgba(0, 0, 0, .5);
+      }
+      #search-input-container #search-input {
+        transition: all .5s;
+      }
+      #search-input-container.closed #search-input {
+        width: 0;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      #search-input-container button img {
+        filter: none;
+        translate: 0 -1px;
+        scale: .8 .8;
+      }
+      #search-input-container.closed button img {
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+        translate: 0 -3px;
+        scale: 1 1;
+      }
+      #search-input-container.closed .input-wrapper {
+        background: transparent;
+        padding: 0;
+      }
+      #search-input {
+        padding-top: 1em;
+        padding-bottom: 1em;
+        color: white;
+      }
+      #search-input:disabled {
+        background: transparent;
+      }
+      #search-input::placeholder {
+        color: white;
+        opacity: .5;
+      }
+
       header button {
         text-align: center;
         padding: 0;
@@ -916,6 +962,10 @@
         left: -.75rem;
         translate: -100% -100%;
       }
+
+      .search-highlight {
+        background: yellow;
+      }
     </style>
   </head>
   <body>
@@ -931,9 +981,14 @@
           <div class="grow">
 
           </div>
-          <button onclick="">
-            <img class="icon" src="res/chatroom/icons/search_icon.svg">
-          </button>
+          <div id="search-input-container" class="closed">
+            <div class="input-wrapper">
+              <input id="search-input" type="text" value="" autocomplete="off" placeholder="채팅방 검색">
+              <button onclick="openSearchBar()">
+                <img class="icon" src="res/chatroom/icons/search_icon.svg">
+              </button>
+            </div>
+          </div>
           <button onclick="">
             <img class="icon" src="res/chatroom/icons/background_icon.svg">
           </button>
@@ -955,9 +1010,11 @@
         <div id="timer">남은 시간 <b>00:00</b></div>
 
         <div id="input-container">
-          <div id="input-wrapper">
+          <div class="input-wrapper">
             <input id="main-input" type="text" autofocus autocomplete="off" />
-            <button onclick="sendMessage()"></button>
+            <button onclick="sendMessage()">
+              <img class="icon" src="res/chatroom/icons/send.svg">
+            </button>
           </div>
         </div>
       </div>
@@ -1284,6 +1341,9 @@ Technical information:
     const scrollDownIcon = document.getElementById("scroll-icon");
     const modeDesc = document.getElementById("mode-desc");
     const modeDetails = document.getElementById("mode-details");
+
+    const searchContainer = document.getElementById("search-input-container");
+    const searchBar = document.getElementById("search-input");
 
     const timerDialog = document.getElementById("timer-dialog");
     const nameDialog = document.getElementById("name-dialog");
@@ -1829,6 +1889,7 @@ Technical information:
     function restart() {
       window.onbeforeunload();
       document.getElementById("game").classList.add("gone");
+      closeSearchBar();
       nameInput.value = "";
       playerUsername = "";
       overlayElement.className = "";
@@ -1917,5 +1978,86 @@ Technical information:
         }
       });
     });
+
+    //
+
+    var previousSearch;
+    var searchResults = [];
+    var searchResultIndex = 0;
+
+    function closeSearchBar() {
+      searchContainer.classList.add("closed");
+      searchBar.setAttribute("disabled", true);
+      searchContainer.querySelector("img").src = "res/chatroom/icons/search_icon.svg";
+      clearSearchResults();
+      previousSearch = null;
+      searchBar.value = "";
+      if (chatOpen) input.focus();
+    }
+    function openSearchBar() {
+      searchContainer.classList.remove("closed");
+      searchBar.removeAttribute("disabled");
+      searchBar.focus();
+      searchContainer.querySelector("img").src = "res/chatroom/icons/search_icon_open.svg";
+    }
+    searchBar.addEventListener("keyup", function(e) {
+      if (e.key == "Enter") {
+        highlightSearchResults(this.value);
+        jumpToSearch(0);
+        // searchResultIndex = jumpToSearch();
+      } else if (e.key == "Escape") {
+        closeSearchBar();
+      }
+    });
+    searchBar.addEventListener("blur", function() {
+      closeSearchBar();
+    });
+
+    function clearSearchResults() {
+      var highlighted = document.getElementsByClassName("search-highlight");
+      for (let i=highlighted.length-1; i>=0; i--) {
+        var parent = highlighted[i].parentElement;
+        highlighted[i].replaceWith(document.createTextNode(highlighted[i].innerText));
+        parent.normalize();
+      }
+    }
+
+    function jumpToSearch(id) {
+      if (!id) {
+        var scroll = -main.scrollTop;
+        var closestSearchResultDistance = Infinity;
+        var closestSearchResult;
+
+        for (let span of searchResults) {
+          var distance = span.offsetTop - scroll;
+        }
+      } else {
+        main.scrollTop = searchResults[searchResultIndex].offsetTop;
+      }
+
+      return id;
+    }
+
+    function highlightSearchResults(key) {
+      if (previousSearch && previousSearch == key) return;
+      previousSearch = key;
+      if (key.trim() == "") return;
+
+      clearSearchResults();
+
+      searchResults = [];
+      searchResultIndex = 0;
+
+      var messages = document.getElementsByClassName("content");
+      for (let message of messages) {
+        if (message.textContent.includes(key)) {
+          message.innerHTML = message.innerHTML.replaceAll(key, "<span class='search-highlight'>"+key+"</span>");
+        }
+      }
+
+      for (let span of document.getElementsByClassName("search-highlight")) {
+        searchResults.push(span);
+      }
+    }
   </script>
 </html>
