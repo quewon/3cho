@@ -6,7 +6,18 @@
     <style media="screen">
       @font-face {
         font-family: 'SCDream';
-        src: url('res/SCDream/SCDream6.otf') format('otf');
+        src: url('res/SCDream/SCDream4.otf') format('opentype');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'SCDream';
+        src: url('res/SCDream/SCDream5.otf') format('opentype');
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: 'SCDream';
+        src: url('res/SCDream/SCDream6.otf') format('opentype');
+        font-weight: 600;
       }
 
       html, body {
@@ -16,12 +27,12 @@
       }
 
       video {
-        cursor: none;
         width: 100vw;
-        height: 100dvh;
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        aspect-ratio: 3000/1924;
       }
 
       .gone {
@@ -29,49 +40,390 @@
       }
 
       #click-prompt {
-        color: white;
         position: absolute;
         top: 50%;
         left: 50%;
         translate: -50% -50%;
+        color: white;
       }
 
-      #recording {
+      #recording,
+      #four-cameras {
+        position: absolute;
+        top: 50%;
+        translate: 0 -50%;
+        left: 0;
+        width: 100vw;
+        overflow: hidden;
+        aspect-ratio: 3000/1924;
+      }
+
+      #webcam, .obs {
+        width: 100vw;
+        height: inherit;
+      }
+      #webcam {
+        scale: -1 1;
+        object-fit: cover;
+      }
+
+      #four-cameras.slow-zoom {
+        animation: zoom-in 100s ease-in-out;
+      }
+      #four-cameras video {
+        /* filter: url(#crt-filter); */
+        /* filter: grayscale(1); */
+      }
+      #obs-container {
+        display: flex;
+        width: 100vw;
+        flex-wrap: wrap;
+        aspect-ratio: 3000/1924;
+      }
+      #obs-container > div {
+        width: 50%;
+        aspect-ratio: 3000/1924;
+        overflow: hidden;
+        position: relative;
+      }
+      #obs-container > div.solo {
+        width: 100%;
+        height: 100%;
+        animation: zoom-in 5s ease-in-out;
+        scale: 2 2;
+      }
+      @keyframes zoom-in {
+        0% { scale: 1 1 }
+        100% { scale: 2 2 }
+      }
+      .obs {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: inherit;
+        transform-origin: 50% 50%;
+        translate: 0 0;
+      }
+
+      #obs-resize-prompt {
         position: absolute;
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100dvh;
+        width: 100%;
+        height: 100%;
       }
 
-      #webcam {
-        scale: -1 1;
+      #recording-ui {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translate3d(0, 0, 0);
+        pointer-events: none;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      #time {
+        position: absolute;
+        top: 13%;
+        line-height: 2vw;
+        font-size: 1.9vw;
+        font-weight: 500;
+        left: 50%;
+        translate: -50% 0;
+        color: white;
+      }
+      #rec-circle {
+        animation: blink 1s steps(1, end) infinite;
+      }
+      @keyframes blink {
+        0% { opacity: 0 }
+        50% { opacity: 1 }
+      }
+
+      #news-ui {
+        animation: blink 1s linear;
+      }
+
+      .sizer {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 20%;
+        aspect-ratio: 3000/1924;
+        resize: horizontal;
+        background: rgba(0, 255, 255, .5);
+        overflow: auto;
+        text-align: center;
+        z-index: 1;
+      }
+      .dragger {
+        position: absolute;
+        width: 100%;
+        height: 2rem;
+        white-space: pre;
+        top: 0;
+        left: 0;
+        translate: 0 0;
+        cursor: grab;
+        background: rgba(255,255,255,.5);
+      }
+      .sizer.dragging .dragger {
+        cursor: grabbing;
+      }
+
+      button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        font-family: inherit;
+        padding: .5rem;
+        border: none;
+        border-radius: .5rem;
+        box-shadow: 1px 1px 5px rgba(255,255,255,.5);
+        cursor: pointer;
+      }
+      button:hover {
+        opacity: .5;
+      }
+
+      svg {
+        /* width: 100%; */
+        /* height: 100%; */
+        width: 0;
+        height: 0;
+      }
+      svg .red {
+        fill: rgb(255, 0, 0);
+      }
+      svg .green {
+        fill: rgb(0, 255, 0);
+      }
+      svg .blue {
+        fill: rgb(0, 0, 255);
       }
     </style>
   </head>
   <body>
 
+    <!-- thank you, alisa kin! -->
+    <!-- https://codepen.io/alisasila/pen/qBRNJbj -->
+    <svg width="100%" height="100%">
+    	<defs>
+    		<!-- create a pattern with some phosphor dots for our base tile (I used Illustrator for this) -->
+    		<pattern id="phosphor-dot-fill" width="11.875" height="4.25" patternUnits="userSpaceOnUse">
+    		<g id="phosphor-dots" transform="scale(0.25)">
+    			<rect class="red" x="0.95" y="1.5" width="8.63" height="20" rx="4.31"/>
+    			<rect class="green" x="10.8" y="1.5" width="8.63" height="20" rx="4.31"/>
+    			<rect class="blue" x="20.29" y="1.5" width="8.63" height="20" rx="4.31"/>
+    			<path class="red" d="M31,5.89A4.24,4.24,0,0,0,35.33,10h0a4.23,4.23,0,0,0,4.31-4.11V0H31Z"/>
+    			<path class="green" d="M40.87,5.89a4.31,4.31,0,0,0,8.62,0V0H40.87Z"/>
+    			<path class="blue" d="M50.36,0V5.89A4.23,4.23,0,0,0,54.67,10h0A4.24,4.24,0,0,0,59,5.89V0Z"/>
+    			<path class="red" d="M35.33,13h0A4.24,4.24,0,0,0,31,17.11V23h8.63V17.11A4.23,4.23,0,0,0,35.33,13Z"/>
+    			<path class="green" d="M45.18,13a4.23,4.23,0,0,0-4.31,4.11V23h8.62V17.11A4.23,4.23,0,0,0,45.18,13Z"/>
+    			<path class="blue" d="M59,17.11A4.24,4.24,0,0,0,54.67,13h0a4.23,4.23,0,0,0-4.31,4.11V23H59Z"/>
+    		</g>
+    		</pattern>
+
+    		<!-- fill a rectangle the size of the whole element with the phosphor dot pattern -->
+    		<rect x="0" y="0" id="phosphor-filled-rect" width="100%" height="100%" fill="url(#phosphor-dot-fill)"/>
+
+    		<!-- create base rectangles for glitch animation -->
+    		<rect id="left-offset-rect" x="0" y="-100" width="100%" height="50%"/>
+    		<rect id="right-offset-rect" x="0" y="-100" width="100%" height="50%"/>
+
+    		<filter id="crt-filter">
+    			<!-- get reference to the phosphor dot screen we created above -->
+    			<feImage xlink:href="#phosphor-filled-rect" result="GRID_PATTERN" />
+
+    			<!-- get references to the rectangles we created above -->
+    			<feImage xlink:href="#left-offset-rect" result="LEFT_RECT_SHAPE"/>
+    			<feImage xlink:href="#right-offset-rect" result="RIGHT_RECT_SHAPE"/>
+
+    			<!-- clip the source graphic to each rectangle -->
+    			<feComposite in="SourceGraphic" in2="LEFT_RECT_SHAPE" operator="in" result="LEFT_RECT_IMAGE"/>
+    			<feComposite in="SourceGraphic" in2="RIGHT_RECT_SHAPE" operator="in" result="RIGHT_RECT_IMAGE"/>
+
+    			<!-- offset each rectangle to right/left -->
+    			<feOffset in="LEFT_RECT_IMAGE" dx="-6" dy="0" result="LEFT_OFFSET_RECT"/>
+    			<feOffset in="RIGHT_RECT_IMAGE" dx="6" dy="0" result="RIGHT_OFFSET_RECT"/>
+
+    			<!-- merge the source graphic and the offset rectangles together -->
+    			<feMerge result="MERGED_SOURCE">
+    				<feMergeNode in="SourceGraphic"/>
+    				<feMergeNode in="LEFT_OFFSET_RECT" />
+    				<feMergeNode in="RIGHT_OFFSET_RECT" />
+    			</feMerge>
+
+    			<!-- blur the graphic a little to give a more realistic look -->
+    			<feGaussianBlur in="MERGED_SOURCE" stdDeviation="1" result="BLURRED_SOURCE"/>
+
+    			<!-- isolate each rgb color in the phosphor dots grid -->
+    			<feColorMatrix
+    				in="GRID_PATTERN"
+            type="matrix"
+            values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0" result="RED"/>
+
+    			<feColorMatrix
+    				in="GRID_PATTERN"
+            type="matrix"
+            values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0" result="GREEN"/>
+
+    			<feColorMatrix
+    				in="GRID_PATTERN"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0" result="BLUE"/>
+
+    			<!-- clip the blurred source graphic to the channels we just isolated -->
+    			<feComposite in="BLURRED_SOURCE" in2="RED" operator="atop" result="COMPOSITED_RED"/>
+    			<feComposite in="BLURRED_SOURCE" in2="GREEN" operator="atop" result="COMPOSITED_GREEN"/>
+    			<feComposite in="BLURRED_SOURCE" in2="BLUE" operator="atop" result="COMPOSITED_BLUE"/>
+
+    			<!-- bring out only the corresponding channel from our clipped source graphic -->
+    			<feColorMatrix
+    				in="COMPOSITED_RED"
+            type="matrix"
+            values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0" result="RED_FINAL"/>
+
+    			<feColorMatrix
+    				in="COMPOSITED_GREEN"
+            type="matrix"
+            values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0" result="FINAL_GREEN"/>
+
+    			<feColorMatrix
+    				in="COMPOSITED_BLUE"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0" result="FINAL_BLUE"/>
+
+    			<!-- merge all the channels back together -->
+    			<feMerge result="MERGED_TV">
+    				<feMergeNode in="RED_FINAL"/>
+    				<feMergeNode in="FINAL_GREEN"/>
+    				<feMergeNode in="FINAL_BLUE"/>
+    			</feMerge>
+
+    			<!-- blur for a more realistic look -->
+    			<feGaussianBlur stdDeviation="1.3" result="BLUR"/>
+
+    			<!-- brighten all the pixels a bit -->
+    			<feColorMatrix
+            type="matrix"
+            values="2 0 0 0 0 0 2 0 0 0 0 0 2 0 0 0 0 0 2 0"
+    				result="FINAL_CRT"/>
+    		</filter>
+    	</defs>
+    </svg>
+
     <div id="click-prompt">
-      방명록 프로그램을 시작하려면 <span style="color: red">카메라 이용을 허용</span>한 다음, 화면을 <span style="color: red">클릭</span>해주세요.
+      화면을 클릭하세요.
     </div>
 
-    <div id="recording" class="gone">
+    <div id="recording">
       <video id="webcam" autoplay muted playsinline></video>
 
+      <div id="recording-ui" class="gone">
+        <div id="time"></div>
+        <img src="res/guestbook/recording-frame.svg">
+        <img id="rec-circle" src="res/guestbook/rec-circle.svg">
+        <img id="news-ui" class="gone" src="res/guestbook/news.svg">
+      </div>
+    </div>
 
+    <div id="four-cameras">
+      <div id="obs-container">
+        <div><video class="obs"></video></div>
+        <div><video class="obs"></video></div>
+        <div><video class="obs"></video></div>
+        <div><video class="obs"></video></div>
+      </div>
+      <div id="obs-resize-prompt" class="gone">
+        <div class="sizer">
+          <div class="dragger">1</div>
+        </div>
+        <div class="sizer">
+          <div class="dragger">2</div>
+        </div>
+        <div class="sizer">
+          <div class="dragger">3</div>
+        </div>
+        <div class="sizer">
+          <div class="dragger">4</div>
+        </div>
+        <button onclick="onFinishedOBSResizing()">OBS 크기 맞추기 완료</button>
+      </div>
     </div>
 
   </body>
   <script defer type="text/javascript">
-    window.onload = async function() {
-      const videoElement = document.getElementById("webcam");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoElement.srcObject = stream;
-      await document.getElementById("webcam").play();
+    const INTRO_ANCHOR_TIME = 5;
 
-      // await loadSounds({
-      //   "recording": ""
-      // });
+    var recordStartTime;
+    var playedIntroAnchor;
+
+    var dragging;
+    var sizing;
+    var dragOffsets;
+    initializeDraggers();
+
+    function initializeDraggers() {
+      var draggers = document.getElementsByClassName("dragger");
+      for (let dragger of draggers) {
+        dragger.addEventListener("mousedown", function(e) {
+          dragging = this.parentElement;
+          dragging.classList.add("dragging");
+          const rect = dragging.getBoundingClientRect();
+          const parentRect = dragging.parentElement.getBoundingClientRect();
+          dragOffsets = {
+            parentWidth: parentRect.width,
+            parentHeight: parentRect.height,
+            x: (e.pageX - rect.x)/parentRect.width * 100,
+            y: (e.pageY - rect.y + parentRect.y)/parentRect.height * 100
+          };
+          e.preventDefault();
+        });
+      }
+      var sizers = document.getElementsByClassName("sizer");
+      for (let sizer of sizers) {
+        sizer.addEventListener("mousedown", function(e) {
+          sizing = this;
+        });
+      }
+      document.addEventListener("mouseup", function(e) {
+        if (dragging) {
+          dragging.classList.remove("dragging");
+          dragging = null;
+        } else if (sizing) {
+          const rect = sizing.getBoundingClientRect();
+          const parentRect = sizing.parentElement.getBoundingClientRect();
+          sizing.style.width = (rect.width/parentRect.width * 100)+"%";
+          sizing = null;
+        }
+      });
+      document.addEventListener("mousemove", function(e) {
+        if (dragging) {
+          dragging.style.left = (e.pageX/dragOffsets.parentWidth * 100 - dragOffsets.x)+"%";
+          dragging.style.top = (e.pageY/dragOffsets.parentHeight * 100 - dragOffsets.y)+"%";
+        }
+      });
+    }
+
+    document.onclick = async function() {
+      document.getElementById("click-prompt").classList.add("gone");
+      document.onclick = null;
+
+      await loadSounds({
+        "intro-anchor": "res/guestbook/introanchor.mp3",
+        "main-anchor": "res/guestbook/mainanchor.mp3"
+      });
 
       await loadVideos({
         "intro": "res/guestbook/intro.mp4",
@@ -79,17 +431,138 @@
         "credits": "res/guestbook/credits.mp4"
       });
 
+      setSoundVolume("intro-anchor", 1);
+      setSoundVolume("main-anchor", .8);
+      setVideoVolume("intro", .3);
+      setVideoVolume("news-intro", .2);
+      setVideoVolume("credits", .3);
+
+      videos["news-intro"].style.objectFit = "cover";
       loopVideo("intro");
 
-      document.onclick = function() {
-        document.getElementById("click-prompt").classList.add("gone");
-        restart();
-        document.onclick = null;
+      document.getElementById("recording-ui").classList.remove("gone");
+
+      const videoElement = document.getElementById("webcam");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoElement.srcObject = stream;
+      await videoElement.play();
+
+      const captureStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false
+      });
+      const obsElements = document.getElementsByClassName("obs");
+      for (let obsElement of obsElements) {
+        obsElement.srcObject = captureStream;
+        await obsElement.play();
       }
+
+      document.getElementById("recording").classList.add("gone");
+
+      persistSizerDimensions();
+      document.getElementById("obs-resize-prompt").classList.remove("gone");
+    }
+
+    function persistSizerDimensions() {
+      var sizers = document.getElementsByClassName("sizer");
+      for (let i=0; i<sizers.length; i++) {
+        const localRect = localStorage.getItem("sizerDimensions"+i);
+        if (!localRect) continue;
+
+        var rect = JSON.parse(localRect);
+        var sizer = sizers[i];
+        sizer.style.left = rect.x+"%";
+        sizer.style.top = rect.y+"%";
+        sizer.style.width = rect.width+"%";
+      }
+    }
+
+    function setOBSDimensions() {
+      const obsElements = document.getElementsByClassName("obs");
+      const sizers = document.getElementsByClassName("sizer");
+      for (let i=0; i<sizers.length; i++) {
+        var sizer = sizers[i];
+        var obs = obsElements[i];
+        const parentRect = obs.parentElement.getBoundingClientRect();
+        const sizerRect = sizer.getBoundingClientRect();
+        const containerRect = sizer.parentElement.getBoundingClientRect();
+        sizerRect.y -= containerRect.y;
+        parentRect.y -= containerRect.y;
+
+        var scale = parentRect.width / sizerRect.width;
+        obs.style.scale = scale;
+
+        switch (i) {
+          case 0:
+            obs.style.left = "50%";
+            obs.style.top = "130%";
+            break;
+          case 1:
+            obs.style.left = "-50%";
+            obs.style.top = "130%";
+            break;
+          case 2:
+            obs.style.left = "50%";
+            obs.style.top = "30%";
+            break;
+          case 3:
+            obs.style.left = "-50%";
+            obs.style.top = "30%";
+            break;
+        }
+
+        // var xopx = parentRect.x - sizerRect.x;
+        // var yopx = parentRect.y - sizerRect.y;
+
+        // xopx += xopx/(parentRect.width * scale);
+        // yopx += yopx/(parentRect.height * scale);
+
+        // console.log(parentRect.x - sizerRect.x, ((parentRect.width * scale - parentRect.width) / 2));
+
+        // var xop = xopx/parentRect.width * 100;
+        // var yop = yopx/parentRect.height * 100;
+
+        // obs.style.left = xop+"%";
+        // obs.style.top = yop+"%";
+      }
+    }
+
+    function saveOBSDimensions() {
+      const obsElements = document.getElementsByClassName("obs");
+      const sizers = document.getElementsByClassName("sizer");
+      for (let i=0; i<sizers.length; i++) {
+        var sizer = sizers[i];
+        var obs = obsElements[i];
+        const parentRect = obs.parentElement.getBoundingClientRect();
+        const sizerRect = sizer.getBoundingClientRect();
+        const containerRect = sizer.parentElement.getBoundingClientRect();
+        sizerRect.y -= containerRect.y;
+        parentRect.y -= containerRect.y;
+
+        sizerRect.x = sizerRect.x/containerRect.width * 100;
+        sizerRect.y = sizerRect.y/containerRect.height * 100;
+        sizerRect.width = sizerRect.width/containerRect.width * 100;
+        localStorage.setItem("sizerDimensions"+i, JSON.stringify(sizerRect));
+      }
+    }
+
+    async function onFinishedOBSResizing() {
+      setOBSDimensions();
+      saveOBSDimensions();
+      window.onresize = setOBSDimensions;
+
+      document.getElementById("obs-resize-prompt").classList.add("gone");
+
+      restart();
+      document.body.style.cursor = "none";
     }
 
     function restart() {
       document.getElementById("recording").classList.add("gone");
+      document.getElementById("news-ui").classList.add("gone");
+      document.getElementById("four-cameras").classList.add("gone");
+      document.getElementById("four-cameras").classList.remove("slow-zoom");
+      resetOBSSolo();
 
       playVideo("intro");
 
@@ -105,6 +578,83 @@
     async function startRecording() {
       startedRecordingTime = Date.now();
       document.getElementById("recording").classList.remove("gone");
+
+      playedIntroAnchor = false;
+      recordStartTime = new Date();
+      updateTime();
+    }
+
+    function updateTime() {
+      var now = new Date();
+      var elapsedTime = now - recordStartTime;
+
+      var sec = Math.floor(elapsedTime/1000%60);
+      var min = Math.floor(elapsedTime/1000/60);
+      if (sec<10) sec="0"+sec;
+      if (min<10) min="0"+min;
+      document.getElementById("time").textContent = "00:00:"+min+":"+sec;
+
+      if (!playedIntroAnchor && elapsedTime >= INTRO_ANCHOR_TIME * 1000) {
+        playSound("intro-anchor");
+        document.getElementById("news-ui").classList.remove("gone");
+        playedIntroAnchor = true;
+      } else if (playedIntroAnchor && elapsedTime >= INTRO_ANCHOR_TIME * 1000 + sounds["intro-anchor"].duration * 1000) {
+        stopRecording();
+        return;
+      }
+
+      requestAnimationFrame(updateTime);
+    }
+
+    function lerp(a, b, t) {
+      return a * (1-t) + b * t;
+    }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    async function stopRecording() {
+      document.getElementById("recording").classList.add("gone");
+
+      await playVideo("news-intro");
+      playVideo();
+
+      document.getElementById("four-cameras").classList.remove("gone");
+      document.getElementById("four-cameras").classList.add("slow-zoom");
+
+      const switchPoint = .7;
+      const mainDuration = sounds["main-anchor"].duration;
+      setTimeout(function() {
+        document.getElementById("four-cameras").classList.remove("slow-zoom");
+        soloRandomOBS(lerp(0, mainDuration, (1-switchPoint)) * 1000);
+      }, lerp(0, mainDuration, switchPoint) * 1000);
+      await playSound("main-anchor");
+
+      document.getElementById("four-cameras").classList.add("gone");
+
+      await delay(1000 * 3);
+      await playVideo("credits");
+      playVideo();
+      await delay(1000 * 3);
+
+      restart();
+    }
+
+    function resetOBSSolo() {
+      var obsElements = document.getElementsByClassName("obs");
+      for (let obs of obsElements) {
+        obs.parentElement.classList.remove("gone");
+        obs.parentElement.classList.remove("solo");
+      }
+    }
+
+    function soloRandomOBS(zoomDuration) {
+      var obsElements = document.getElementsByClassName("obs");
+      for (let obs of obsElements) {
+        obs.parentElement.classList.add("gone");
+      }
+      var obs = obsElements[Math.random() * obsElements.length | 0];
+      obs.parentElement.classList.remove("gone");
+      obs.parentElement.classList.add("solo");
+      obs.parentElement.style.animationDuration = zoomDuration+"ms";
     }
 
     var videos = {};
@@ -137,7 +687,7 @@
 
         for (let soundName in soundsObject) {
           sounds[soundName] = document.createElement("audio");
-          sounds[soundName].addEventListener("onload", function() {
+          sounds[soundName].addEventListener("canplaythrough", function() {
             soundsLoaded++;
             if (soundsLoaded >= Object.keys(soundsObject).length) {
               console.log("loaded sounds");
@@ -156,21 +706,37 @@
       }, false);
     }
 
-    function playVideo(videoName) {
+    async function playVideo(videoName) {
       for (let name in videos) {
         videos[name].classList.add("gone");
         videos[name].pause();
       }
-      if (videoName) {
-        videos[videoName].classList.remove("gone");
-        videos[videoName].currentTime = 0;
-        videos[videoName].play();
-      }
+      return new Promise((resolve) => {
+        if (videoName) {
+          videos[videoName].classList.remove("gone");
+          videos[videoName].currentTime = 0;
+          videos[videoName].play();
+          videos[videoName].addEventListener("ended", resolve);
+        } else {
+          resolve();
+        }
+      });
     }
 
-    function playSound(soundName) {
-      sounds[soundName].currentTime = 0;
-      sounds[soundName].play();
+    async function playSound(soundName) {
+      return new Promise((resolve) => {
+        sounds[soundName].currentTime = 0;
+        sounds[soundName].play();
+        sounds[soundName].addEventListener("ended", resolve);
+      });
+    }
+
+    function setSoundVolume(soundName, volume) {
+      sounds[soundName].volume = volume;
+    }
+
+    function setVideoVolume(videoName, volume) {
+      videos[videoName].volume = volume;
     }
   </script>
 </html>

@@ -2041,9 +2041,10 @@ Technical information:
     function highlightSearchResults(key) {
       if (previousSearch && previousSearch == key) return;
       previousSearch = key;
-      if (key.trim() == "") return;
 
       clearSearchResults();
+
+      if (key.trim() == "") return;
 
       searchResults = [];
       searchResultIndex = 0;
