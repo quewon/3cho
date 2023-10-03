@@ -1565,7 +1565,7 @@ Technical information:
           }
 
           if (BANK[key]["이펙트키"]) {
-            await playEffect(key);
+            await playEffect(BANK[key]["이펙트키"]);
             return;
           }
         }
