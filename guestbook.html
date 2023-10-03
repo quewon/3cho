@@ -26,6 +26,10 @@
         background: black;
       }
 
+      body.hide-cursor, body.hide-cursor * {
+        cursor: none;
+      }
+
       video {
         width: 100vw;
         position: absolute;
@@ -367,7 +371,7 @@
 
   </body>
   <script defer type="text/javascript">
-    const INTRO_ANCHOR_TIME = 5;
+    const INTRO_ANCHOR_TIME = 3;
 
     var recordStartTime;
     var playedIntroAnchor;
@@ -569,7 +573,7 @@
       document.getElementById("obs-resize-prompt").classList.add("gone");
 
       restart();
-      document.body.style.cursor = "none";
+      document.body.classList.add("hide-cursor");
     }
 
     function restart() {
@@ -645,9 +649,10 @@
       await playSound("main-anchor");
       playVideo();
 
+      await delay(1000 * 3);
+
       document.getElementById("four-cameras").classList.add("gone");
 
-      await delay(1000 * 3);
       await playVideo("credits");
       playVideo();
       await delay(1000 * 3);
