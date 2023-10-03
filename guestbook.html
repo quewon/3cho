@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ko" dir="ltr">
   <head>
     <meta charset="utf-8">
     <title>방명록</title>
@@ -45,6 +45,9 @@
         left: 50%;
         translate: -50% -50%;
         color: white;
+        z-index: 10;
+        background: black;
+        padding: .5rem;
       }
 
       #recording,
@@ -72,7 +75,7 @@
       }
       #four-cameras video {
         /* filter: url(#crt-filter); */
-        /* filter: grayscale(1); */
+        filter: grayscale(1);
       }
       #obs-container {
         display: flex;
@@ -428,7 +431,8 @@
       await loadVideos({
         "intro": "res/guestbook/intro.mp4",
         "news-intro": "res/guestbook/newsintro.mp4",
-        "credits": "res/guestbook/credits.mp4"
+        "credits": "res/guestbook/credits.mp4",
+        "captions": "res/guestbook/anchor-captions.webm"
       });
 
       setSoundVolume("intro-anchor", 1);
@@ -447,20 +451,31 @@
       videoElement.srcObject = stream;
       await videoElement.play();
 
-      const captureStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
-      });
-      const obsElements = document.getElementsByClassName("obs");
-      for (let obsElement of obsElements) {
-        obsElement.srcObject = captureStream;
-        await obsElement.play();
+      console.log("webcam enabled");
+
+      document.getElementById("click-prompt").classList.remove("gone");
+
+      document.onclick = async function() {
+        document.onclick = null;
+        document.getElementById("click-prompt").classList.add("gone");
+
+        const captureStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false
+        });
+        const obsElements = document.getElementsByClassName("obs");
+        for (let obsElement of obsElements) {
+          obsElement.srcObject = captureStream;
+          await obsElement.play();
+        }
+
+        console.log("stream captured");
+
+        document.getElementById("recording").classList.add("gone");
+
+        persistSizerDimensions();
+        document.getElementById("obs-resize-prompt").classList.remove("gone");
       }
-
-      document.getElementById("recording").classList.add("gone");
-
-      persistSizerDimensions();
-      document.getElementById("obs-resize-prompt").classList.remove("gone");
     }
 
     function persistSizerDimensions() {
@@ -626,7 +641,9 @@
         document.getElementById("four-cameras").classList.remove("slow-zoom");
         soloRandomOBS(lerp(0, mainDuration, (1-switchPoint)) * 1000);
       }, lerp(0, mainDuration, switchPoint) * 1000);
+      playVideo("captions");
       await playSound("main-anchor");
+      playVideo();
 
       document.getElementById("four-cameras").classList.add("gone");
 
@@ -665,6 +682,10 @@
 
         for (let videoName in videosObject) {
           videos[videoName] = document.createElement("video");
+
+          var sourceTag = document.createElement("source");
+          sourceTag.src = videosObject[videoName];
+
           videos[videoName].classList.add("gone");
           document.body.appendChild(videos[videoName]);
           videos[videoName].load();
@@ -675,7 +696,8 @@
               resolve();
             }
           });
-          videos[videoName].src = videosObject[videoName];
+          // videos[videoName].src = videosObject[videoName];
+          videos[videoName].appendChild(sourceTag);
         }
       });
     }
