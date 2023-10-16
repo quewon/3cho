@@ -34,8 +34,6 @@ board.on("ready", function() {
 
   this.loop(4, () => {
     updateStepper();
-
-    console.log(runStepper);
   });
 
   io.on('connection', (socket) => {

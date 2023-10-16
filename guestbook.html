@@ -24,6 +24,7 @@
         margin: 0;
         font-family: "SCDream", sans-serif;
         background: black;
+        overflow: hidden;
       }
 
       body.hide-cursor, body.hide-cursor * {
@@ -428,8 +429,9 @@
       document.onclick = null;
 
       await loadSounds({
-        "intro-anchor": "res/guestbook/introanchor.mp3",
-        "main-anchor": "res/guestbook/mainanchor.mp3"
+        "intro-anchor": "res/guestbook/introanchor.wav",
+        "main-anchor": "res/guestbook/mainanchor.wav",
+        "boy-anchor": "res/guestbook/boyanchor.wav"
       });
 
       await loadVideos({
@@ -439,11 +441,11 @@
         "captions": "res/guestbook/anchor-captions.webm"
       });
 
-      setSoundVolume("intro-anchor", 1);
-      setSoundVolume("main-anchor", .8);
-      setVideoVolume("intro", .3);
-      setVideoVolume("news-intro", .2);
-      setVideoVolume("credits", .3);
+      // setSoundVolume("intro-anchor", 1);
+      // setSoundVolume("main-anchor", .8);
+      // setVideoVolume("intro", .3);
+      // setVideoVolume("news-intro", .2);
+      // setVideoVolume("credits", .3);
 
       videos["news-intro"].style.objectFit = "cover";
       loopVideo("intro");
@@ -529,20 +531,6 @@
             obs.style.top = "30%";
             break;
         }
-
-        // var xopx = parentRect.x - sizerRect.x;
-        // var yopx = parentRect.y - sizerRect.y;
-
-        // xopx += xopx/(parentRect.width * scale);
-        // yopx += yopx/(parentRect.height * scale);
-
-        // console.log(parentRect.x - sizerRect.x, ((parentRect.width * scale - parentRect.width) / 2));
-
-        // var xop = xopx/parentRect.width * 100;
-        // var yop = yopx/parentRect.height * 100;
-
-        // obs.style.left = xop+"%";
-        // obs.style.top = yop+"%";
       }
     }
 
@@ -639,14 +627,13 @@
       document.getElementById("four-cameras").classList.remove("gone");
       document.getElementById("four-cameras").classList.add("slow-zoom");
 
-      const switchPoint = .7;
-      const mainDuration = sounds["main-anchor"].duration;
-      setTimeout(function() {
-        document.getElementById("four-cameras").classList.remove("slow-zoom");
-        soloRandomOBS(lerp(0, mainDuration, (1-switchPoint)) * 1000);
-      }, lerp(0, mainDuration, switchPoint) * 1000);
       playVideo("captions");
       await playSound("main-anchor");
+
+      document.getElementById("four-cameras").classList.remove("slow-zoom");
+      soloRandomOBS(sounds["boy-anchor"].duration);
+      await playSound("boy-anchor");
+
       playVideo();
 
       await delay(1000 * 3);

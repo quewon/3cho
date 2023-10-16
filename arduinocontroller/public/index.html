@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <title></title>
     <style media="screen">
+      body {
+        background: black;
+        border: none;
+      }
+
       video, .overlay {
         position: absolute;
         top: 0;
@@ -14,18 +19,160 @@
         pointer-events: none;
       }
 
+      .overlay {
+        display: none;
+        color: red;
+      }
       body.face-detected .overlay {
-        border: 5px solid red;
+        display: block;
+      }
+
+      img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+        object-fit: scale-down;
+        max-height: 100dvh;
+        max-width: 100vw;
+      }
+
+      .gone {
+        display: none;
+      }
+
+      .inline-circle {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background: red;
+      }
+      .rec {
+        position: absolute;
+        top: 10vw;
+        left: 10vw;
+        font-family: sans-serif;
+        font-weight: bold;
+        font-size: 20px;
+        translate: 30px 30px;
       }
     </style>
   </head>
   <body>
 
     <video autoplay playsinline></video>
-    <div class="overlay"></div>
-    <button type="button" name="button">ENABLE WEBCAM</button>
+    <button>ENABLE WEBCAM</button>
+    <div class="select">
+      <select id="videoSource"></select>
+    </div>
+    <img src="" alt="">
+    <div class="overlay">
+      <div class="rec">
+        <div class="inline-circle"></div> REC
+      </div>
+    </div>
 
   </body>
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="face-landmarker.js"></script>
+  <script type="text/javascript">
+    const socket = io();
+    var lastEmittedData;
+
+    function sendData(data) {
+      if (lastEmittedData != data) {
+        socket.emit("data", data);
+        lastEmittedData = data;
+        console.log("faces detected: "+data);
+      }
+    }
+
+    //
+
+    var videoSelect = document.querySelector('select#videoSource');
+    videoSelect.onchange = getStream;
+    getStream().then(getDevices).then(gotDevices);
+
+    function getDevices() {
+      // AFAICT in Safari this only gets default devices until gUM is called :/
+      return navigator.mediaDevices.enumerateDevices();
+    }
+
+    function gotDevices(deviceInfos) {
+      window.deviceInfos = deviceInfos; // make available to console
+      console.log('Available input and output devices:', deviceInfos);
+      for (const deviceInfo of deviceInfos) {
+        const option = document.createElement('option');
+        option.value = deviceInfo.deviceId;
+        if (deviceInfo.kind === 'audioinput') {
+          // option.text = deviceInfo.label || `Microphone ${audioSelect.length + 1}`;
+          // audioSelect.appendChild(option);
+        } else if (deviceInfo.kind === 'videoinput') {
+          option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+          videoSelect.appendChild(option);
+        }
+      }
+    }
+
+    function getStream() {
+      if (window.stream) {
+        window.stream.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+      // const audioSource = audioSelect.value;
+      const videoSource = videoSelect.value;
+      const constraints = {
+        // audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+        video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+      };
+      return navigator.mediaDevices.getUserMedia(constraints).
+        then(gotStream).catch(handleError);
+    }
+
+    function gotStream(stream) {
+      window.stream = stream; // make stream available to console
+      videoSelect.selectedIndex = [...videoSelect.options].
+        findIndex(option => option.text === stream.getVideoTracks()[0].label);
+      document.querySelector("video").srcObject = stream;
+    }
+
+    function handleError(error) {
+      console.error('Error: ', error);
+    }
+
+    function onWebcamEnabled() {
+      document.querySelector("button").classList.add("gone");
+      document.querySelector(".select").classList.add("gone");
+      document.querySelector("video").classList.add("gone");
+
+      setInterval(switchImage, 3000);
+    }
+
+    var images = [
+      "res/instagram.png",
+      "res/nblog.png",
+      "res/piki.png",
+      "res/twitter.png",
+      "res/youtube.png"
+    ];
+    var imageIndex = 0;
+
+    function switchImage() {
+      document.querySelector("img").src = images[imageIndex];
+      document.querySelector("img").onload = function() {
+        let rect = this.getBoundingClientRect();
+        const rec = document.querySelector(".rec");
+        rec.style.left = rect.left+"px";
+        rec.style.top = rect.top+"px";
+      }
+
+      imageIndex++;
+      if (imageIndex >= images.length) imageIndex = 0;
+    }
+  </script>
+
+  <script type="module" src="js/face-api.js"></script>
+  <!-- <script type="module" src="js/faceapi_detector.js"></script> -->
+  <script type="module" src="js/mediapipe_detector.js"></script>
 </html>
