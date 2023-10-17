@@ -20,8 +20,8 @@ const P2 = 10;
 const P3 = 11;
 const P4 = 12;
 
-// var runStepper = false;
-var runStepper = true;
+var runStepper = false;
+// var runStepper = true;
 
 const delayAmount = 3;
 var step = 0;
@@ -40,7 +40,7 @@ board.on("ready", function() {
     console.log('A user connected');
 
     socket.on('data', (data) => {
-      // runStepper = data > 0;
+      runStepper = data > 0;
     });
   });
 });

@@ -40,7 +40,13 @@ function enableWebcam(event) {
   navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
     webcam.srcObject = stream;
     webcam.addEventListener("loadeddata", function() {
-      predictWebcam();
+      // predictWebcam();
+      // webcam.requestVideoFrameCallback(frameProcessing);
+      const frameProcessing = (now, metadata) => {
+        predictWebcam();
+        webcam.requestVideoFrameCallback(frameProcessing);
+      }
+      webcam.requestVideoFrameCallback(frameProcessing);
     });
   });
 
@@ -60,5 +66,5 @@ async function predictWebcam() {
     if (results.faceLandmarks.length > 0) document.body.classList.add("face-detected");
   }
 
-  window.requestAnimationFrame(predictWebcam);
+  // window.requestAnimationFrame(predictWebcam);
 }
