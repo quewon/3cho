@@ -7,6 +7,8 @@ enableButton.onclick = async function() {
   webcam.srcObject = stream;
   await webcam.play();
 
+  onWebcamEnabled();
+
   updateLandmarks();
 
   await initFaceDetection();
