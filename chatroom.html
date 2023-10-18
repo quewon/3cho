@@ -231,13 +231,38 @@
         height: 2rem;
         max-height: unset;
         border-radius: 50%;
-        background: lightgray;
         aspect-ratio: 1;
         align-self: end;
         translate: 0 30%;
 
+        /* background: url("res/chatroom/icons/profile.svg"); */
+        background-color: #434959;
+        /* background-position: center; */
+        /* background-size: cover; */
+        position: relative;
+
         opacity: 0;
       }
+
+      .response .icon .after {
+        display: block;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: url("res/chatroom/icons/profile_white.svg");
+        background-size: cover;
+        background-position: center;
+
+        width: inherit;
+        height: inherit;
+        max-height: inherit;
+        border-radius: inherit;
+        aspect-ratio: inherit;
+
+        filter: brightness(0.5) sepia(1) hue-rotate(223deg) saturate(5);
+      }
+
       .response.last .icon {
         opacity: 1;
       }
@@ -388,9 +413,6 @@
       }
       .response.right.last .content {
         border-bottom-right-radius: 0;
-      }
-      .response.player .icon {
-        background: var(--red);
       }
 
       .response.center {
@@ -991,7 +1013,7 @@
               </button>
             </div>
           </div>
-          <button class="gone" onclick="">
+          <button onclick="switchBackground()">
             <img class="icon" src="res/chatroom/icons/background_icon.svg">
           </button>
           <button onclick="helpDialog.showModal()">
@@ -1002,7 +1024,7 @@
       </header>
 
       <div class="container">
-        <div class="glass"></div>
+        <img id="switchable-background" class="glass"></img>
         <div class="glass"></div>
         <div class="glass"></div>
 
@@ -1218,11 +1240,32 @@ Technical information:
           }
         }
 
+        BANK["17세기"] = {
+          keyword: "17세기",
+          "입력": "17세기",
+          messages: [
+            "1: 여러분여러분 17세기 소년 봤어요?",
+            "2: 그게머임? ㅋㅋㅋㅋㅋ",
+            "3: 웬 17세기????",
+            "4: 나 방금 일어남..",
+            "1: 아니 이번에 17세기 소년 어쩌구 뉴스 개많이 떴잖아요",
+            "1: 17세기 소년이 최근에 원주에 있는 연구소에서 발견됐다던데",
+            "6: 근대 17세기 애라는 증거 있어요? 말이 됨?",
+            "7: 처음 발견됐을 때 막 이상한 말들을 해서 경찰에서 조사해봤더니",
+            "7: 천연두인가 뭐가 발견됐다고 하던데?",
+            "8: 엥 천연두??? 그거 없어진 거 아님???",
+            "9: 미친 대박 그거 걔떔에 다시 퍼지는 거 아냐?",
+            "10: 구라 ㄴㄴ",
+            "11: 어 나 이런 거 영화에서 봤는뎈ㅋㅋㅋㅋㅋ",
+            "12: 걔땜에 우리 천연두 걸리는 거임?..."
+          ],
+          rowId: 3,
+        };
+
         console.log("bank loaded");
         if (onload) onload();
       })
       .catch((e) => {
-        console.log(e);
         load_bank(onload);
       });
     }
@@ -1291,8 +1334,13 @@ Technical information:
               !loggedMessages[messageTimestamp] || loggedMessages[messageTimestamp] != messageContent
             )
           ) {
+            if (!playerColors[messageName]) {
+              playerColors[messageName] = Math.random() * 360;
+            }
+            color = playerColors[messageName];
+
             loggedMessages[messageTimestamp] = messageContent;
-            new Message(messageName, messageContent, messageType == "player" ? "left" : "center", messageType, messageTimestamp);
+            new Message(messageName, messageContent, messageType == "player" ? "left" : "center", messageType, messageTimestamp, color);
             if (messageType == "player") playResponses(messageContent);
           }
         }
@@ -1333,6 +1381,8 @@ Technical information:
     var playerUsername;
     var timerInterval;
 
+    var playerColors = [];
+
     const SCROLL_BASELINE = 0;
 
     const startMenu = document.getElementById("start-menu");
@@ -1354,7 +1404,7 @@ Technical information:
     const mediaDialogBody = mediaDialog.getElementsByClassName("body")[0];
 
     class Message {
-      constructor(name, text, position, type, time) {
+      constructor(name, text, position, type, time, color) {
         var element = document.createElement("div");
         element.classList.add("response");
         if (type) element.classList.add(type);
@@ -1367,6 +1417,14 @@ Technical information:
           element.classList.add("last");
         }
         element.appendChild(icon);
+
+        var after = document.createElement("div");
+        after.classList.add("after");
+        icon.appendChild(after);
+
+        color = color || Math.random() * 360;
+
+        after.style.filter = "brightness(0.5) sepia(1) hue-rotate("+color+"deg) saturate(5)";
 
         if (name && type != "news") element.dataset.name = name;
 
@@ -1582,6 +1640,7 @@ Technical information:
       }
 
       var assignedNames = {};
+      var assignedColors = {};
 
       for (let i=0; i<matchedIds.length; i++) {
         const id = matchedIds[i];
@@ -1591,6 +1650,7 @@ Technical information:
         for (let j=0; j<arr.length; j++) {
           var text = arr[j];
           var name = "";
+          var color = 0;
           if (text.includes(": ")) {
             const a = text.split(": ");
             name = a[0];
@@ -1602,6 +1662,7 @@ Technical information:
           if (!nameIsNaN && !assignedNames[name]) {
             var nameExists = true;
             while (nameExists) {
+              assignedColors[name] = Math.random() * 360;
               assignedNames[name] = generateName();
 
               nameExists = false;
@@ -1634,10 +1695,11 @@ Technical information:
           }
 
           name = nameIsNaN ? name : assignedNames[name];
+          color = nameIsNaN ? color : assignedColors[name];
 
           if (!chatOpen) return;
 
-          if (text != "") new Message(name, text, "left");
+          if (text != "") new Message(name, text, "left", null, null, color);
 
           var textDelayLength = text.replaceAll("ㅋ","").replaceAll("?","").replaceAll(".","").length * 70;
 
@@ -1652,7 +1714,7 @@ Technical information:
               } else {
                 html += "<img src='res/chatroom/media/"+media["이미지/영상"]+"'></img>"
               }
-              new Message(name, html, "left", "media");
+              new Message(name, html, "left", "media", null, color);
             } else {
               // new Message(name, html, "left", "news");
             }
@@ -2060,6 +2122,27 @@ Technical information:
 
       for (let span of document.getElementsByClassName("search-highlight")) {
         searchResults.push(span);
+      }
+    }
+
+    // background switcher
+
+    var backgrounds = [
+      "res/chatroom/bg/2.png",
+      "res/chatroom/bg/3.png",
+      null,
+      "res/chatroom/bg/5.jpg",
+      "res/chatroom/bg/6.png",
+    ];
+    var backgroundIndex = 2;
+    var bgImageElement = document.getElementById("switchable-background");
+
+    function switchBackground() {
+      bgImageElement.src = backgrounds[backgroundIndex];
+
+      backgroundIndex++;
+      if (backgroundIndex >= backgrounds.length) {
+        backgroundIndex = 0;
       }
     }
   </script>
