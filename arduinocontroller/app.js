@@ -50,28 +50,28 @@ function updateStepper() {
 
   switch (step) {
     case 0:
-      board.digitalWrite(P1, 1);
+      board.digitalWrite(P1, 0);
       board.digitalWrite(P2, 0);
       board.digitalWrite(P3, 0);
-      board.digitalWrite(P4, 0);
+      board.digitalWrite(P4, 1);
       break;
     case 1:
-      board.digitalWrite(P1, 0);
-      board.digitalWrite(P2, 1);
-      board.digitalWrite(P3, 0);
-      board.digitalWrite(P4, 0);
-      break;
-    case 2:
       board.digitalWrite(P1, 0);
       board.digitalWrite(P2, 0);
       board.digitalWrite(P3, 1);
       board.digitalWrite(P4, 0);
       break;
-    case 3:
+    case 2:
       board.digitalWrite(P1, 0);
+      board.digitalWrite(P2, 1);
+      board.digitalWrite(P3, 0);
+      board.digitalWrite(P4, 0);
+      break;
+    case 3:
+      board.digitalWrite(P1, 1);
       board.digitalWrite(P2, 0);
       board.digitalWrite(P3, 0);
-      board.digitalWrite(P4, 1);
+      board.digitalWrite(P4, 0);
       break;
   }
   step++;
